@@ -75,7 +75,7 @@ const NUMBERED = ["cv", "facts", "move", "roles", "where", "sectors", "condition
 // ================================================================ state
 const blankAnswers = () => ({
   move: "", move_note: "", roles: [], avoid_roles: [], mix: "balanced",
-  cities: [], radius: 20, modes: ["Ibrido"], relocation: "no", travel: "20",
+  cities: [], radius: 50, modes: ["Ibrido"], relocation: "no", travel: "20",
   sectors: {}, company_types: [], dream_companies: [], blocked_companies: [],
   salary_min: "", salary_target: "", work_language: "any", notice: "3m",
   motivators: [], good_day: "", dealbreakers: "", in_3_years: "",
