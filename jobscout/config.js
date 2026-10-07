@@ -5,7 +5,7 @@ export const CONFIG = {
   // "openid email" lets the profile API check who is calling.
   scope: "https://www.googleapis.com/auth/spreadsheets openid email",
   // Profile API (Cloudflare Worker, job_finder_bot/worker). Empty until it is deployed.
-  apiUrl: "",
+  apiUrl: "https://jobscout-api.federico-scordo5.workers.dev",
   followupDays: 14,
   userName: "Federico",
 };
