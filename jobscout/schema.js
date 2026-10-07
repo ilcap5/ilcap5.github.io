@@ -46,13 +46,34 @@ export const TABS = [
   { key: "standby", label: "Scartate", test: (j) => j.status === S.STANDBY },
 ];
 
-// Status -> colour family (CSS classes in styles.css).
+// Status -> colour family (CSS classes in styles.css). Few families, each with a meaning:
+// amber = tocca a te, green = in corso, deep = colloqui, brand = offerta, red = problema o no, grey = chiusa.
 export const STATUS_TONE = {
-  [S.NEW]: "amber", [S.STANDBY]: "grey", [S.CV_READY]: "green", [S.CV_CHECK]: "red", [S.APPLIED]: "blue",
-  [S.FOLLOWUP_DUE]: "violet", [S.FOLLOWUP_SENT]: "blue", [S.SCREENING]: "teal", [S.ASSESSMENT]: "teal",
-  [S.INTERVIEW]: "teal", [S.FINAL_LOOP]: "teal", [S.OFFER]: "brand", [S.REJECTED]: "red", [S.NO_ANSWER]: "grey",
-  [S.WITHDRAWN]: "grey", [S.EXPIRED]: "grey",
+  [S.NEW]: "amber", [S.CV_READY]: "amber", [S.FOLLOWUP_DUE]: "amber", [S.CV_CHECK]: "red",
+  [S.APPLIED]: "green", [S.FOLLOWUP_SENT]: "green",
+  [S.SCREENING]: "deep", [S.ASSESSMENT]: "deep", [S.INTERVIEW]: "deep", [S.FINAL_LOOP]: "deep",
+  [S.OFFER]: "brand", [S.REJECTED]: "red",
+  [S.STANDBY]: "grey", [S.NO_ANSWER]: "grey", [S.WITHDRAWN]: "grey", [S.EXPIRED]: "grey",
 };
+
+// Search days (screening.yml): Monday, Wednesday, Friday at 15:20.
+const RUN_DAYS = [1, 3, 5];
+const WEEKDAYS = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"];
+const MONTHS = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre",
+  "ottobre", "novembre", "dicembre"];
+export function longDate(d = new Date()) {
+  return `${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+export function nextRun(now = new Date()) {
+  for (let i = 0; i < 8; i++) {
+    const d = addDays(new Date(now.getFullYear(), now.getMonth(), now.getDate()), i);
+    const at = new Date(d); at.setHours(15, 20);
+    if (RUN_DAYS.includes(d.getDay()) && at > now) {
+      return i === 0 ? "oggi alle 15:20" : i === 1 ? "domani alle 15:20" : `${WEEKDAYS[d.getDay()]} alle 15:20`;
+    }
+  }
+  return "";
+}
 
 export function matchTone(score) {
   const n = Number(score);

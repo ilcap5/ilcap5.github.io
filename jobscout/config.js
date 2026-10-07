@@ -4,4 +4,5 @@ export const CONFIG = {
   clientId: "23389660951-6gcaenbvb3biah0b5f8vcuoiq85a5des.apps.googleusercontent.com",
   scope: "https://www.googleapis.com/auth/spreadsheets",
   followupDays: 14,
+  userName: "Federico",
 };
