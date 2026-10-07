@@ -346,6 +346,19 @@ function salary(job) {
   return `${esc(job.salary)}${job.salary_type === "Stima" ? `<span class="est">stima</span>` : ""}`;
 }
 
+// Quick decision right in the list: yes is one click, no opens the reasons (the agent learns from them).
+function decision(j, compact = false) {
+  if (j.status === S.NEW && !j.decision && j.id) {
+    return `<div class="decide${compact ? " compact" : ""}">
+      <button class="btn-yes" data-action="yes" data-id="${esc(j.id)}" aria-label="Sì, prepara il CV per ${esc(j.title)}">${icon("check", 15)} Sì</button>
+      <button class="btn-no" data-action="quick-no" data-id="${esc(j.id)}" aria-label="No, scarta ${esc(j.title)}">${icon("close", 14)} No</button></div>`;
+  }
+  if (compact) return "";
+  if (/^y/i.test(j.decision)) return `<span class="dec dec-yes">${icon("check", 15)} Sì</span>`;
+  if (/^n/i.test(j.decision)) return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}</span>`;
+  return `<span class="muted">-</span>`;
+}
+
 function emptyState(title, text, action = "") {
   return `<div class="empty"><b>${esc(title)}</b><span>${esc(text)}</span>${action}</div>`;
 }
@@ -368,7 +381,8 @@ function renderTable() {
     const prep = j.status === S.NEW && /^y/i.test(j.decision);
     return `<tr data-action="open" data-id="${esc(j.id)}" tabindex="0" class="${state.selected === j.id ? "sel" : ""}">
       <td class="c-job"><div class="job">${logo(j)}<div class="job-txt"><b>${esc(j.title)}</b><span>${esc(j.company)}</span>
-        <span class="show-sm">${statusPill(j)}</span></div></div></td>
+        <span class="show-sm">${decision(j, true) || statusPill(j)}</span></div></div></td>
+      <td class="c-dec hide-sm">${decision(j)}</td>
       <td class="c-status hide-sm">${statusSelect(j)}${prep ? `<span class="sub-tag">CV in arrivo stasera</span>` : ""}</td>
       <td class="c-match">${matchBadge(j.score)}</td>
       <td class="c-city hide-md">${esc(j.city)}${j.work_mode ? `<span class="muted block">${esc(j.work_mode)}</span>` : ""}</td>
@@ -378,7 +392,7 @@ function renderTable() {
     </tr>`;
   }).join("");
   $("#table").innerHTML = `<table class="jobs">
-    <thead><tr><th>Offerta</th><th class="hide-sm">Stato</th><th>Match</th><th class="hide-md">Città</th><th class="hide-md">RAL</th>
+    <thead><tr><th>Offerta</th><th class="hide-sm">Ti interessa?</th><th class="hide-sm">Stato</th><th>Match</th><th class="hide-md">Città</th><th class="hide-md">RAL</th>
       <th class="hide-sm">Trovata</th><th class="hide-sm">Inviata</th></tr></thead>
     <tbody>${rows}</tbody></table>`;
   const time = new Date(state.loadedAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
@@ -570,6 +584,7 @@ document.addEventListener("click", async (e) => {
   if (a === "yes") return save(id, { decision: "Y" }, "Fatto: il CV su misura arriva stasera.");
   if (a === "undo") return save(id, { decision: "" }, "Va bene, l'offerta torna da valutare.");
   if (a === "no") { state.rejecting = true; return renderDrawer(); }
+  if (a === "quick-no") { state.selected = id; state.rejecting = true; state.reason = ""; renderTable(); renderDrawer(); return; }
   if (a === "cancel-no") { state.rejecting = false; state.reason = ""; return renderDrawer(); }
   if (a === "reason") {
     state.reason = el.dataset.reason;
