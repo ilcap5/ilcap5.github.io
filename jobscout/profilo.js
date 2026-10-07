@@ -36,10 +36,32 @@ const RADIUS = [10, 20, 35, 50];
 const MODES = ["In sede", "Ibrido", "Da remoto"];
 const RELOCATION = [{ id: "no", t: "No" }, { id: "italia", t: "In Italia" }, { id: "estero", t: "Anche all'estero" }];
 const TRAVEL = [{ id: "0", t: "Nessuna" }, { id: "20", t: "Fino al 20%" }, { id: "50", t: "Fino al 50%" }, { id: "100", t: "Anche di più" }];
-const SECTORS = ["Tech e software", "Fintech e pagamenti", "E-commerce e delivery", "Consulenza strategica", "Consulenza operations",
-  "Logistica e trasporti", "Manifatturiero", "Automotive e mobilità", "Energia e utilities", "Beni di consumo (FMCG)",
-  "Lusso e moda", "Farmaceutico e sanità", "Retail", "Telecomunicazioni", "Media e intrattenimento", "Banche e assicurazioni",
-  "Pubblica amministrazione"];
+// Same list as job_finder_bot/worker/src/profile.js: the API only suggests sectors from here.
+const SECTORS = ["Tech e software", "Fintech e pagamenti", "E-commerce e delivery", "Consulenza strategica",
+  "Consulenza operations", "Consulenza IT e system integration", "Logistica e trasporti", "Manifatturiero",
+  "Automotive e mobilità", "Energia e utilities", "Beni di consumo (FMCG)", "Alimentare e bevande", "Lusso e moda",
+  "Beauty e cosmetica", "Farmaceutico e sanità", "Retail", "Telecomunicazioni", "Media e intrattenimento",
+  "Banche e assicurazioni", "Pubblica amministrazione"];
+// Older answers (and drafts) may carry English names: map them onto the list above.
+const SECTOR_ALIASES = {
+  "fashion & luxury": "Lusso e moda", "luxury": "Lusso e moda", "fashion": "Lusso e moda",
+  "beauty & cosmetics": "Beauty e cosmetica", "consumer goods (fmcg)": "Beni di consumo (FMCG)", "fmcg": "Beni di consumo (FMCG)",
+  "consumer goods": "Beni di consumo (FMCG)", "automotive": "Automotive e mobilità", "mobility": "Automotive e mobilità",
+  "consulting": "Consulenza strategica", "management consulting": "Consulenza strategica", "manufacturing": "Manifatturiero",
+  "retail": "Retail", "pharma & healthcare": "Farmaceutico e sanità", "healthcare": "Farmaceutico e sanità",
+  "food & beverage": "Alimentare e bevande", "software / planning solutions": "Tech e software", "software": "Tech e software",
+  "tech": "Tech e software", "technology": "Tech e software", "fintech": "Fintech e pagamenti", "e-commerce": "E-commerce e delivery",
+  "logistics": "Logistica e trasporti", "energy": "Energia e utilities", "telecommunications": "Telecomunicazioni",
+  "media": "Media e intrattenimento", "banking": "Banche e assicurazioni", "insurance": "Banche e assicurazioni",
+  "public sector": "Pubblica amministrazione",
+};
+const canonSector = (s) => (SECTORS.includes(s) ? s : SECTOR_ALIASES[String(s).trim().toLowerCase()] || null);
+function normalizeSectors() {
+  S.suggestions.sectors = [...new Set((S.suggestions.sectors || []).map(canonSector).filter(Boolean))];
+  const map = {};
+  for (const [k, v] of Object.entries(S.answers.sectors || {})) { const c = canonSector(k); if (c) map[c] = v; }
+  S.answers.sectors = map;
+}
 const COMPANY_TYPES = ["Multinazionale", "Big tech", "Scale-up", "Startup", "Consulenza strategica", "PMI italiana"];
 const LANGS = [{ id: "it", t: "Italiano" }, { id: "en", t: "Inglese" }, { id: "any", t: "Indifferente" }];
 const NOTICE = [{ id: "now", t: "Subito" }, { id: "1m", t: "Entro un mese" }, { id: "3m", t: "In 2-3 mesi" }, { id: "later", t: "Più avanti" }];
@@ -224,7 +246,8 @@ const VIEWS = {
         <div class="pf-grid">
           ${field("Ruolo attuale", `<input data-f="current_role" value="${esc(f.current_role)}">`)}
           ${field("Azienda", `<input data-f="current_company" value="${esc(f.current_company)}">`)}
-          ${field("Anni di esperienza", `<input data-f="years_experience" type="number" min="0" max="45" step="0.5" inputmode="decimal" value="${esc(f.years_experience)}">`, "Solo lavoro a tempo pieno, stage esclusi")}
+          ${field("Anni di esperienza", `<input data-f="years_experience" type="number" min="0" max="45" step="0.1" inputmode="decimal" value="${esc(f.years_experience)}">`,
+            esc(f.years_source || "Solo lavoro a tempo pieno, stage esclusi") + (f.years_counted?.length ? `: ${esc(f.years_counted.join("; "))}` : ""))}
           ${field("Città", `<input data-f="city" value="${esc(f.city)}">`)}
         </div>
         ${block("Livello", "", seg("facts.seniority", SENIORITY, f.seniority))}
@@ -293,7 +316,8 @@ const VIEWS = {
 
   sectors() {
     const a = S.answers;
-    const list = [...new Set([...(S.suggestions.sectors || []), ...SECTORS, ...Object.keys(a.sectors)])];
+    normalizeSectors();
+    const list = [...new Set([...(S.suggestions.sectors || []), ...SECTORS])];
     const state = (s) => a.sectors[s] || "";
     return {
       title: "Settori e aziende",

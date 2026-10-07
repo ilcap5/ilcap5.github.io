@@ -4,7 +4,7 @@ export function demoInfer() {
   return {
     facts: {
       name: "Chiara Ferretti", current_role: "Business Analyst", current_company: "Società di consulenza",
-      years_experience: 3.2, seniority: "mid", city: "Milano", country: "IT",
+      years_experience: 3.2, years_source: "Somma delle esperienze a tempo pieno, stage esclusi", years_counted: ["Business Analyst, Società di consulenza (38 mesi)"], seniority: "mid", city: "Milano", country: "IT",
       education: "Laurea magistrale in Ingegneria Gestionale",
       languages: [{ name: "Italiano", level: "madrelingua" }, { name: "Inglese", level: "C1" }],
       skills: ["Process mapping", "SQL", "Power BI", "S&OP", "Gestione stakeholder", "Excel avanzato", "Project management", "Lean"],
