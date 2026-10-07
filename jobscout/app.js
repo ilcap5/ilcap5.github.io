@@ -171,6 +171,7 @@ function renderTop() {
   const demo = state.store instanceof DemoStore;
   $("#topbar-actions").innerHTML = `
     ${demo ? `<span class="badge">Dati di esempio</span>` : ""}
+    <a class="btn btn-quiet btn-sm" href="profilo.html${demo ? "?demo=1" : ""}">Profilo</a>
     <button class="btn btn-icon" data-action="reload" title="Aggiorna" aria-label="Aggiorna">${icon("refresh")}</button>
     ${state.url ? `<a class="btn btn-icon" href="${esc(state.url)}" target="_blank" rel="noopener" title="Apri il foglio" aria-label="Apri il foglio">${icon("sheet")}</a>` : ""}
     <button class="btn btn-quiet btn-sm" data-action="${demo ? "exit-demo" : "logout"}">${demo ? "Esci dalla prova" : "Esci"}</button>`;

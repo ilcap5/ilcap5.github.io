@@ -144,6 +144,45 @@ export class SheetsStore {
   }
 }
 
+// ---------------------------------------------------------------- agent memory (hidden Stato tab) and profile API
+SheetsStore.prototype.getState = async function (key) {
+  const data = await this._fetch(`/values/${encodeURIComponent("Stato!A:B")}`);
+  const row = (data.values || []).find((r) => r[0] === key);
+  return row ? row[1] || "" : "";
+};
+
+SheetsStore.prototype.setState = async function (key, value) {
+  const data = await this._fetch(`/values/${encodeURIComponent("Stato!A:A")}`);
+  const idx = (data.values || []).findIndex((r) => r[0] === key);
+  if (idx >= 0) {
+    await this._fetch(`/values/${encodeURIComponent(`Stato!B${idx + 1}`)}?valueInputOption=RAW`, {
+      method: "PUT", body: JSON.stringify({ values: [[value]] }),
+    });
+  } else {
+    await this._fetch(`/values/${encodeURIComponent("Stato!A:B")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+      method: "POST", body: JSON.stringify({ values: [[key, value]] }),
+    });
+  }
+};
+
+SheetsStore.prototype.api = async function (baseUrl, path, body, retry = true) {
+  if (!baseUrl) throw new Error("Il servizio che legge il CV non è ancora attivo.");
+  if (!this.token) await this.signIn();
+  const res = await fetch(baseUrl.replace(/\/$/, "") + path, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${this.token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401 && retry) {
+    // Older sessions miss the email permission: ask Google again once.
+    await this.signIn("consent");
+    return this.api(baseUrl, path, body, false);
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Errore ${res.status}`);
+  return data;
+};
+
 // ---------------------------------------------------------------- sample data (no login)
 export class DemoStore {
   constructor() {
@@ -156,5 +195,12 @@ export class DemoStore {
   async update(id, fields) {
     const job = this.jobs.find((j) => j.id === id);
     if (job) Object.assign(job, fields);
+  }
+  async getState(key) { return this.state?.[key] || ""; }
+  async setState(key, value) { this.state = { ...(this.state || {}), [key]: value }; }
+  async api(_base, path, body) {
+    const { demoInfer, demoBuild } = await import("./demo-profile.js");
+    await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
+    return path.endsWith("infer") ? demoInfer() : demoBuild(body);
   }
 }

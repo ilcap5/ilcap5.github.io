@@ -11,6 +11,11 @@ application tracker) and Google Drive (to store generated CV files in a dedicate
 <p>The dashboard at <a href="/jobscout/">ilcap5.github.io/jobscout</a> reads and updates the owner's tracker sheet
 directly from the browser, with a short-lived Google access token. The page has no server: no data is sent to or
 stored by this website.</p>
+<h2>Profile setup</h2>
+<p>On the profile page the owner can upload a CV (PDF) and answer a questionnaire. The CV and the answers are sent,
+with the owner's Google sign-in, to a small API run by the owner on Cloudflare Workers, which forwards them to the
+Anthropic API to extract the profile. Nothing is stored by the API: the resulting profile is saved in the owner's
+Google Sheet.</p>
 <h2>How data is used</h2>
 <p>Data is used only to manage the owner's job applications. Job descriptions, the owner's CV and emails
 related to applications may be processed through the Anthropic API to analyse job posts and draft texts.
