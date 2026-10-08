@@ -83,8 +83,17 @@ const blankAnswers = () => ({
 const S = {
   store: null, demo: false, step: "intro", busy: false, error: "",
   facts: null, suggestions: { roles: [], sectors: [] }, recruiter: "", answers: blankAnswers(), search: null,
-  saved: null, cvName: "",
+  saved: null, cvName: "", cvConsent: false,
 };
+
+// The CV and the answers leave the browser (Cloudflare, then Anthropic): ask once, before either path starts.
+function needConsent() {
+  if (S.cvConsent) return false;
+  S.error = "Prima conferma di aver letto l'informativa privacy.";
+  render();
+  $("#cv-consent")?.focus();
+  return true;
+}
 
 function saveDraft() {
   if (S.demo) return;
@@ -139,7 +148,7 @@ function screen(html) {
 }
 
 function brand() {
-  return `<a class="brand" href="./${S.demo ? "?demo=1" : ""}" aria-label="Torna alla dashboard"><img class="brand-mark" src="assets/mark-64.png" width="28" height="28" alt="">
+  return `<a class="brand" href="./${S.demo ? "?demo=1" : ""}" aria-label="JobScout.ai, torna alla dashboard"><img class="brand-mark" src="assets/mark-64.png" width="28" height="28" alt="">
     <span class="brand-name">JobScout<span>.ai</span></span></a>`;
 }
 
@@ -164,7 +173,7 @@ function render(animate = false) {
       ${counter}
       <h1>${view.title}</h1>
       ${view.lead ? `<p class="pf-lead">${view.lead}</p>` : ""}
-      ${S.error ? `<div class="note note-red">${esc(S.error)}</div>` : ""}
+      ${S.error ? `<div class="note note-red" role="alert">${esc(S.error)}</div>` : ""}
       <div class="pf-body-in">${view.body}</div>
     </main>
     ${view.nav === false ? "" : nav(view)}
@@ -183,8 +192,8 @@ function nav(view) {
 // ---------- small components
 const chip = (label, on, act, data = "", extra = "") =>
   `<button type="button" class="pf-chip${on ? " on" : ""} ${extra}" data-act="${act}" ${data} aria-pressed="${on}">${esc(label)}</button>`;
-const seg = (name, options, value) => `<div class="pf-seg" role="radiogroup">${options.map((o) =>
-  `<button type="button" role="radio" aria-checked="${String(o.id) === String(value)}" class="${String(o.id) === String(value) ? "on" : ""}" data-act="set" data-k="${name}" data-v="${esc(o.id)}">${esc(o.t)}</button>`).join("")}</div>`;
+const seg = (name, options, value) => `<div class="pf-seg">${options.map((o) =>
+  `<button type="button" aria-pressed="${String(o.id) === String(value)}" class="${String(o.id) === String(value) ? "on" : ""}" data-act="set" data-k="${name}" data-v="${esc(o.id)}">${esc(o.t)}</button>`).join("")}</div>`;
 const tags = (key, list, placeholder) => `<div class="pf-tags" data-tags="${key}">${list.map((t, i) =>
   `<span class="pf-tag">${esc(t)}<button type="button" data-act="untag" data-k="${key}" data-i="${i}" aria-label="Togli ${esc(t)}">&times;</button></span>`).join("")}
   <input type="text" data-addtag="${key}" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}"></div>`;
@@ -215,14 +224,18 @@ const VIEWS = {
     const ready = Boolean(CONFIG.apiUrl) || S.demo;
     return {
       title: "Partiamo dal tuo CV",
-      lead: "Carica la versione più aggiornata, in PDF. Lo uso solo per capire il tuo profilo: non lo condivido e non resta salvato da nessuna parte.",
+      lead: "Carica la versione più aggiornata, in PDF. Serve solo a costruire il tuo profilo di ricerca.",
       body: S.busy ? `<div class="pf-reading"><div class="pf-scan"><span></span></div><b>Sto leggendo ${esc(S.cvName || "il CV")}</b>
           <p class="pf-help">Esperienze, anni, competenze e settori. Di solito ci vogliono 10-20 secondi.</p></div>`
         : `<label class="pf-drop" data-drop>
-            <input type="file" accept="application/pdf" id="cv-file" hidden>
+            <input type="file" accept="application/pdf" id="cv-file" class="sr-only">
             <span class="pf-drop-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9.5 13.5 12 11l2.5 2.5"/></svg></span>
             <b>Trascina qui il PDF o sceglilo dal computer</b><span>Massimo 6 MB</span>
           </label>
+          <label class="pf-consent"><input type="checkbox" id="cv-consent"${S.cvConsent ? " checked" : ""}>
+            <span>Ho letto l'<a href="../privacy.html" target="_blank" rel="noopener">informativa privacy</a>: il CV e le risposte
+            passano dal servizio JobScout su Cloudflare e sono analizzati da Anthropic, che non li usa per addestrare i modelli. JobScout
+            non li conserva: resta solo il profilo, nel tuo Google Sheet.</span></label>
           ${ready ? "" : `<div class="note note-amber">Il servizio che legge il CV non è ancora attivo. Puoi compilare il profilo a mano.</div>`}
           <button class="btn btn-quiet btn-block" data-act="manual">${ready ? "Preferisco compilarlo a mano" : "Compila a mano"}</button>`,
       canNext: false, nav: S.busy ? false : undefined, nextLabel: "Avanti",
@@ -230,6 +243,7 @@ const VIEWS = {
         const input = $("#cv-file"), drop = $("[data-drop]");
         if (!input) return;
         input.addEventListener("change", () => input.files[0] && readCv(input.files[0]));
+        $("#cv-consent")?.addEventListener("change", (e) => { S.cvConsent = e.target.checked; if (S.cvConsent && S.error) { S.error = ""; render(); } });
         drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
         drop.addEventListener("dragleave", () => drop.classList.remove("over"));
         drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && readCv(e.dataTransfer.files[0]); });
@@ -263,8 +277,8 @@ const VIEWS = {
     return {
       title: "Che passo vuoi fare?",
       lead: "È la domanda che cambia di più la ricerca. Scegli quella più vicina a come ti senti oggi.",
-      body: `<div class="pf-cards" role="radiogroup">${MOVES.map((m) => `
-          <button type="button" role="radio" aria-checked="${S.answers.move === m.id}" class="pf-card${S.answers.move === m.id ? " on" : ""}" data-act="set" data-k="move" data-v="${m.id}">
+      body: `<div class="pf-cards">${MOVES.map((m) => `
+          <button type="button" aria-pressed="${S.answers.move === m.id}" class="pf-card${S.answers.move === m.id ? " on" : ""}" data-act="set" data-k="move" data-v="${m.id}">
             <b>${m.t}</b><span>${m.d}</span></button>`).join("")}</div>
         ${field("Vuoi aggiungere qualcosa? (facoltativo)", `<textarea data-a="move_note" rows="2" placeholder="Es. voglio restare in operations ma uscire dalla consulenza">${esc(S.answers.move_note)}</textarea>`)}`,
       canNext: Boolean(S.answers.move),
@@ -278,8 +292,8 @@ const VIEWS = {
       const sel = S.answers.roles.find((r) => r.title === title);
       const why = suggested.find((r) => r.title === title)?.why;
       return `<div class="pf-role${sel ? " on" : ""}"><div class="pf-role-t"><b>${esc(title)}</b>${why ? `<span>${esc(why)}</span>` : ""}</div>
-        <div class="pf-seg sm">${PRIORITY.map((p) => `<button type="button" class="${sel?.priority === p.id ? "on" : ""}" data-act="role" data-t="${esc(title)}" data-v="${p.id}">${p.t}</button>`).join("")}
-        <button type="button" class="${sel ? "" : "on"} off" data-act="role" data-t="${esc(title)}" data-v="">No</button></div></div>`;
+        <div class="pf-seg sm" role="group" aria-label="${esc(title)}">${PRIORITY.map((p) => `<button type="button" aria-pressed="${sel?.priority === p.id}" class="${sel?.priority === p.id ? "on" : ""}" data-act="role" data-t="${esc(title)}" data-v="${p.id}">${p.t}</button>`).join("")}
+        <button type="button" aria-pressed="${!sel}" class="${sel ? "" : "on"} off" data-act="role" data-t="${esc(title)}" data-v="">No</button></div></div>`;
     };
     const counts = PRIORITY.map((p) => S.answers.roles.filter((r) => r.priority === p.id).length);
     return {
@@ -417,6 +431,7 @@ function emptyFacts() {
 }
 
 async function readCv(file) {
+  if (needConsent()) return;
   if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) { S.error = "Serve il CV in PDF."; return render(); }
   if (file.size > 6 * 1024 * 1024) { S.error = "Il PDF supera i 6 MB: esportalo di nuovo con una qualità più bassa."; return render(); }
   S.busy = true; S.cvName = file.name; S.error = ""; render();
@@ -540,7 +555,7 @@ document.addEventListener("click", async (e) => {
   }
   if (act === "next") return next();
   if (act === "back") return back();
-  if (act === "manual") { S.facts = S.facts || emptyFacts(); return go("facts"); }
+  if (act === "manual") { if (needConsent()) return; S.facts = S.facts || emptyFacts(); return go("facts"); }
   if (act === "edit-saved") {
     Object.assign(S, { facts: S.saved.facts, answers: { ...blankAnswers(), ...S.saved.answers }, search: S.saved.search });
     // Saved answers carry sector lists: rebuild the tri-state map.

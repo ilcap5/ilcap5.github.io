@@ -1,9 +1,32 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Job Agent Bot</title><link rel="icon" href="jobscout/assets/mark-64.png" type="image/png"></head>
-<body style="font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 16px;line-height:1.5">
-<h1>Job Agent Bot</h1>
-<p>Job Agent Bot is a personal tool used by a single person to manage their own job applications:
-it reads job-alert emails, keeps a tracking spreadsheet and stores tailored CVs in the owner's Google Drive.</p>
-<p>It is not offered to other users.</p>
-<p><a href="privacy.html">Privacy policy</a></p>
-</body></html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JobScout.ai</title>
+  <meta name="description" content="Strumento personale per cercare, valutare e seguire candidature di lavoro.">
+  <link rel="icon" href="jobscout/assets/mark-64.png" type="image/png">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <a class="skip" href="#contenuto">Vai al contenuto</a>
+  <header><a href="index.html"><img src="jobscout/assets/mark-64.png" width="28" height="28" alt="">JobScout.ai</a></header>
+  <main id="contenuto">
+    <h1>JobScout.ai</h1>
+    <p class="lead">Uno strumento personale che cerca offerte di lavoro, le valuta rispetto al profilo del suo proprietario,
+    prepara CV su misura per quelle scelte e segue le candidature fino alla risposta.</p>
+    <p>L'invio delle candidature resta sempre manuale. Oggi lo usa una sola persona, il proprietario, e non è aperto ad altri utenti.</p>
+    <h2>Come funziona</h2>
+    <ul>
+      <li>Legge gli avvisi di lavoro di LinkedIn arrivati nella Gmail del proprietario, la ricerca pubblica di LinkedIn e le pagine carriere pubbliche di alcune aziende.</li>
+      <li>Valuta ogni offerta con un modello di Anthropic e la scrive in un Google Sheet del proprietario.</li>
+      <li>Per le offerte approvate prepara un CV in Google Drive, riformulando solo informazioni già presenti nel CV di partenza.</li>
+    </ul>
+    <p>Le valutazioni sono generate da un modello di intelligenza artificiale e possono contenere errori: ogni decisione resta del proprietario.</p>
+  </main>
+  <footer>
+    <nav aria-label="Informazioni legali"><a href="privacy.html">Privacy</a><a href="cookie.html">Cookie</a><a href="termini.html">Termini e condizioni</a></nav>
+    <p>JobScout.ai è un progetto personale e non commerciale, gestito dal titolare dell'account GitHub <a href="https://github.com/ilcap5">ilcap5</a>. Il servizio non è in vendita.</p>
+  </footer>
+</body>
+</html>

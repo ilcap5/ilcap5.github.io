@@ -1,27 +1,73 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Job Agent Bot - Privacy policy</title><link rel="icon" href="jobscout/assets/mark-64.png" type="image/png"></head>
-<body style="font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 16px;line-height:1.5">
-<h1>Privacy policy</h1>
-<p>Job Agent Bot is a personal tool used only by its owner. It has no other users.</p>
-<h2>Data accessed</h2>
-<p>With the owner's authorization, the tool accesses the owner's Gmail (to read job alerts and replies about
-job applications, send notifications to the owner and create draft emails), Google Sheets (to keep the
-application tracker) and Google Drive (to store generated CV files in a dedicated folder).</p>
-<h2>Web dashboard</h2>
-<p>The dashboard at <a href="/jobscout/">ilcap5.github.io/jobscout</a> reads and updates the owner's tracker sheet
-directly from the browser, with a short-lived Google access token. The page has no server: no data is sent to or
-stored by this website.</p>
-<h2>Profile setup</h2>
-<p>On the profile page the owner can upload a CV (PDF) and answer a questionnaire. The CV and the answers are sent,
-with the owner's Google sign-in, to a small API run by the owner on Cloudflare Workers, which forwards them to the
-Anthropic API to extract the profile. Nothing is stored by the API: the resulting profile is saved in the owner's
-Google Sheet.</p>
-<h2>How data is used</h2>
-<p>Data is used only to manage the owner's job applications. Job descriptions, the owner's CV and emails
-related to applications may be processed through the Anthropic API to analyse job posts and draft texts.
-Data is not sold, shared with third parties for other purposes, or used for advertising.</p>
-<h2>Storage and revocation</h2>
-<p>Data stays in the owner's Google account. Access can be revoked at any time from
-<a href="https://myaccount.google.com/permissions">https://myaccount.google.com/permissions</a>.</p>
-<p>Last updated: October 2026.</p>
-</body></html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy - JobScout.ai</title>
+  <meta name="description" content="Informativa privacy di JobScout.ai.">
+  <link rel="icon" href="jobscout/assets/mark-64.png" type="image/png">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <a class="skip" href="#contenuto">Vai al contenuto</a>
+  <header><a href="index.html"><img src="jobscout/assets/mark-64.png" width="28" height="28" alt="">JobScout.ai</a></header>
+  <main id="contenuto">
+    <h1>Informativa privacy</h1>
+    <p class="updated">Ultimo aggiornamento: 8 ottobre 2026</p>
+    <p>JobScout.ai è uno strumento personale usato solo dal suo proprietario, che è anche l'unica persona i cui dati vengono trattati
+    in modo sistematico (CV, profilo, email sulle candidature). Questa pagina spiega quali dati usa, dove passano e come revocare l'accesso.</p>
+
+    <h2>Titolare</h2>
+    <p>Il proprietario e unico utente del servizio, titolare dell'account GitHub <a href="https://github.com/ilcap5">ilcap5</a>,
+    che è anche il canale di contatto.</p>
+
+    <h2>Dati trattati e finalità</h2>
+    <ul>
+      <li><b>Gmail del proprietario</b>: lettura degli avvisi di lavoro e delle risposte delle aziende, invio di notifiche a sé stesso, bozze di follow-up.</li>
+      <li><b>Google Sheets</b>: il foglio che tiene offerte, stati delle candidature e profilo di ricerca.</li>
+      <li><b>Google Drive</b>: i CV su misura generati, in una cartella dedicata.</li>
+      <li><b>CV e questionario della pagina Profilo</b>: servono a costruire il profilo di ricerca. Il CV non viene conservato dal servizio; resta solo il profilo, nel foglio.</li>
+      <li><b>Offerte di lavoro pubbliche</b> (LinkedIn senza login, pagine carriere delle aziende): testi pubblici degli annunci, che possono contenere il nome di chi li ha pubblicati.</li>
+    </ul>
+    <p>La base del trattamento è l'uso dello strumento richiesto dal proprietario stesso. I dati non sono venduti, non sono usati per pubblicità
+    e non sono usati per profilare altre persone.</p>
+
+    <h2>Fornitori che trattano i dati</h2>
+    <table>
+      <thead><tr><th scope="col">Fornitore</th><th scope="col">Per cosa</th></tr></thead>
+      <tbody>
+        <tr><td>Google</td><td>Accesso con Google, Gmail, Sheets, Drive.</td></tr>
+        <tr><td>Anthropic</td><td>Analisi delle offerte, lettura del CV, preparazione dei CV e delle bozze. Secondo i termini commerciali di Anthropic i dati inviati tramite API non sono usati per addestrare i modelli.</td></tr>
+        <tr><td>Cloudflare</td><td>Il piccolo servizio che riceve CV e risposte dalla pagina Profilo, verifica l'accesso e li inoltra ad Anthropic, senza salvarli. Avvia anche i giri programmati.</td></tr>
+        <tr><td>GitHub</td><td>Ospita queste pagine e fa girare l'agente (GitHub Actions). Come ogni hosting registra gli indirizzi IP dei visitatori per sicurezza.</td></tr>
+      </tbody>
+    </table>
+    <p>Questi fornitori possono trattare i dati anche fuori dall'Unione europea, in particolare negli Stati Uniti, con le garanzie previste dai rispettivi
+    termini (clausole contrattuali standard o EU-US Data Privacy Framework).</p>
+
+    <h2>Conservazione</h2>
+    <p>I dati restano nell'account Google del proprietario finché lui non li cancella. Il servizio su Cloudflare non conserva il contenuto dei CV.
+    Nel browser restano solo i dati tecnici descritti nella <a href="cookie.html">cookie policy</a>.</p>
+
+    <h2>Diritti e revoca</h2>
+    <p>L'accesso all'account Google si revoca in ogni momento da <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+    Restano i diritti previsti dagli articoli 15-22 del GDPR (accesso, rettifica, cancellazione, limitazione, portabilità, opposizione) e il diritto
+    di reclamo al <a href="https://www.garanteprivacy.it">Garante per la protezione dei dati personali</a>.</p>
+
+    <h2>Uso dei dati Google</h2>
+    <p>L'uso e il trasferimento ad altre applicazioni delle informazioni ricevute dalle API di Google rispettano la
+    <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, compresi i requisiti di uso limitato.</p>
+
+    <h2 lang="en">English summary</h2>
+    <p lang="en">JobScout.ai (OAuth app "Job Agent Bot") is a personal tool used only by its owner. With the owner's authorization it reads job
+    alerts and application replies in Gmail, keeps a tracker in Google Sheets and stores tailored CVs in Google Drive. Job posts, the owner's CV and
+    application emails may be processed through the Anthropic API; the profile page sends the CV through a small Cloudflare Worker that does not
+    store it. Data is not sold or used for advertising. Use of information received from Google APIs adheres to the Google API Services User Data
+    Policy, including the Limited Use requirements. Access can be revoked at myaccount.google.com/permissions.</p>
+  </main>
+  <footer>
+    <nav aria-label="Informazioni legali"><a href="privacy.html">Privacy</a><a href="cookie.html">Cookie</a><a href="termini.html">Termini e condizioni</a></nav>
+    <p>JobScout.ai è un progetto personale e non commerciale, gestito dal titolare dell'account GitHub <a href="https://github.com/ilcap5">ilcap5</a>. Il servizio non è in vendita.</p>
+  </footer>
+</body>
+</html>

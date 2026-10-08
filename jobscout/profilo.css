@@ -139,3 +139,9 @@
 }
 .brand { text-decoration: none; color: inherit; }
 .pf-role { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+/* CV upload: the file input stays reachable with the keyboard; the drop zone shows its focus. */
+.pf-drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pf-consent { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 4px; font-size: 14px; line-height: 1.5; color: var(--body); cursor: pointer; }
+.pf-consent input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--brand-2); }
+.pf-consent a { color: var(--brand-2); }

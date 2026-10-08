@@ -1,14 +1,17 @@
+/* Geist (SIL Open Font License 1.1, assets/fonts/OFL-Geist.txt), served from this site: no request to Google Fonts. */
+@font-face { font-family: Geist; src: url("assets/fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
 /* JobScout.ai dashboard. Design rules in job_finder_bot/docs/design.md:
    one accent (brand green), tinted neutrals, sentence-case headings, no uppercase labels,
    radius scale 14 (panels) / 9 (controls) / full (status pills), motion only where it explains something. */
 
 :root {
   --brand: #0B3B2E; --brand-2: #14614A; --brand-soft: #E6F2EB; --accent: #2FA36B; --on-brand: #FFFFFF;
-  --bg: #F3F5F4; --panel: #FFFFFF; --text: #16241E; --body: #3B4A43; --muted: #6E7D76;
+  --bg: #F3F5F4; --panel: #FFFFFF; --text: #16241E; --body: #3B4A43; --muted: #5F6E67;
   --line: #E3E9E5; --line-2: #D3DDD7; --hover: #F6F8F7; --field: #FFFFFF;
   --amber-bg: #FFF4D6; --amber: #7A5A00; --red-bg: #FDE8E6; --red: #9C1C10;
   --green-bg: #E6F2EB; --green: #14614A; --deep-bg: #CFE7DA; --deep: #0B3B2E; --grey-bg: #EEF1EF; --grey: #5D6B65;
-  --m85-bg: #1E8E55; --m85: #FFFFFF; --m70-bg: #D9F0E2; --m70: #14613A; --m50-bg: #FFF1C2; --m50: #7A5A00;
+  --m85-bg: #187A4C; --m85: #FFFFFF; --m70-bg: #D9F0E2; --m70: #14613A; --m50-bg: #FFF1C2; --m50: #7A5A00;
   --m30-bg: #FFE3CC; --m30: #8A3E00; --m0-bg: #FDE0DD; --m0: #9C1C10;
   --shadow: 0 1px 2px rgb(16 40 30 / .04), 0 10px 28px -16px rgb(16 40 30 / .14);
   --shadow-lg: -24px 0 60px -20px rgb(10 30 22 / .28);
@@ -24,7 +27,7 @@
     --line: #23302A; --line-2: #2F3E37; --hover: #1A2520; --field: #101814;
     --amber-bg: #3A2F12; --amber: #F2CF6B; --red-bg: #3D1C19; --red: #F4A196;
     --green-bg: #173329; --green: #8FDCB6; --deep-bg: #1F4A39; --deep: #CDEFDD; --grey-bg: #222C28; --grey: #A9B6B0;
-    --m85-bg: #239A5E; --m85: #FFFFFF; --m70-bg: #1B3F2A; --m70: #8FE0B9; --m50-bg: #3A3212; --m50: #F2CF6B;
+    --m85-bg: #187A4C; --m85: #FFFFFF; --m70-bg: #1B3F2A; --m70: #8FE0B9; --m50-bg: #3A3212; --m50: #F2CF6B;
     --m30-bg: #3E2814; --m30: #F5B27E; --m0-bg: #3D1C19; --m0: #F4A196;
     --shadow: 0 1px 2px rgb(0 0 0 / .3); --shadow-lg: -24px 0 60px -20px rgb(0 0 0 / .6);
     color-scheme: dark;
@@ -73,7 +76,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .link:hover { text-decoration: underline; }
 
 /* ---------- login and setup */
-.screen { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.screen { min-height: 100vh; display: grid; place-items: center; align-content: center; gap: 6px; padding: 24px 16px; }
 .screen-card { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
   padding: 32px 28px 28px; box-shadow: var(--shadow); animation: rise 420ms var(--ease-out); }
 .screen-card .brand { margin-bottom: 32px; }
@@ -87,7 +90,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-mark { width: 28px; height: 28px; border-radius: 8px; display: block; }
 .brand-name { font-weight: 650; font-size: 17px; letter-spacing: -.02em; }
-.brand-name span { color: var(--accent); }
+.brand-name span { color: var(--brand-2); }
 
 /* ---------- top bar */
 .topbar { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 82%, transparent);
@@ -208,6 +211,9 @@ table.jobs { width: 100%; border-collapse: collapse; }
 .empty b { color: var(--text); font-size: 16px; font-weight: 600; }
 .empty .btn { margin-top: 10px; }
 .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 16px; }
+.legal { display: flex; justify-content: center; gap: 16px; font-size: 13px; margin: 10px 0 4px; }
+.legal a { color: var(--muted); }
+.legal a:hover { color: var(--text); }
 
 /* ---------- skeleton */
 .sk { background: linear-gradient(90deg, var(--hover), var(--line), var(--hover)); background-size: 200% 100%; border-radius: 8px; animation: shimmer 1.4s linear infinite; }
@@ -335,3 +341,5 @@ table.jobs { width: 100%; border-collapse: collapse; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

@@ -2,7 +2,7 @@ import { CONFIG } from "./config.js";
 import { DemoStore, SheetsStore } from "./store.js";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
-  addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
+  addDays, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
 } from "./schema.js";
 
@@ -51,7 +51,8 @@ function boot() {
 }
 
 function screen(html) {
-  $("#app").innerHTML = `<div class="screen"><div class="screen-card">${brand()}${html}</div></div>`;
+  $("#app").innerHTML = `<main class="screen"><div class="screen-card">${brand()}${html}</div>
+    <nav class="legal" aria-label="Informazioni legali"><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav></main>`;
 }
 
 function brand() {
@@ -142,10 +143,11 @@ function shell() {
       <div id="table"></div>
     </section>
     <p class="foot" id="foot"></p>
+    <nav class="legal" aria-label="Informazioni legali"><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav>
   </main>
   <div class="drawer-wrap" id="drawer-wrap" hidden>
     <div class="drawer-bg" data-action="close"></div>
-    <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Dettaglio offerta"></aside>
+    <div class="drawer" id="drawer" role="dialog" aria-label="Dettaglio offerta"></div>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 }
@@ -313,14 +315,10 @@ function visibleJobs() {
     .sort((a, b) => by(b) - by(a) || (Number(b.score) || 0) - (Number(a.score) || 0));
 }
 
-const failedLogos = new Set();
-
+// Company initials, drawn here: no logo service is called, so the page talks only to Google Sheets and the
+// profile API (no third-party request carrying the company you are looking at).
 function logo(job, size = 40) {
-  const dom = companyDomain(job);
-  const ini = `<span class="logo logo-ini" style="--s:${size}px" aria-hidden="true">${esc(initials(job.company))}</span>`;
-  if (!dom || failedLogos.has(dom)) return ini;
-  return `<span class="logo" style="--s:${size}px"><img class="logo-img" alt="" loading="lazy" data-ini="${esc(initials(job.company))}"
-    data-dom="${esc(dom)}" src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(dom)}&sz=128"></span>`;
+  return `<span class="logo logo-ini" style="--s:${size}px" aria-hidden="true">${esc(initials(job.company))}</span>`;
 }
 
 function statusLabel(job) {
@@ -411,6 +409,10 @@ function renderDrawer() {
     if (!wrap.hidden) {
       wrap.classList.add("closing");
       setTimeout(() => { wrap.hidden = true; wrap.classList.remove("closing"); }, 180);
+      // Back to the row the detail was opened from, so keyboard users keep their place.
+      const row = state.returnFocus && document.querySelector(`tr[data-id="${CSS.escape(state.returnFocus)}"]`);
+      row?.focus({ preventScroll: true });
+      state.returnFocus = null;
     }
     document.body.classList.remove("no-scroll");
     return;
@@ -476,6 +478,8 @@ function renderDrawer() {
     wrap.classList.add("opening");
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.remove("opening")));
     $("#drawer").scrollTop = 0;
+    state.returnFocus = j.id;
+    $("#drawer [data-action=close]")?.focus({ preventScroll: true });
     $("#drawer").focus({ preventScroll: true });
   } else {
     $("#drawer").scrollTop = scrollTop;
@@ -637,16 +641,6 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.matches("tr[data-action=open]")) e.target.click();
 });
 
-// Logos that fail to load fall back to initials.
-document.addEventListener("error", (e) => {
-  const img = e.target;
-  if (img.classList?.contains("logo-img")) {
-    failedLogos.add(img.dataset.dom);
-    const span = img.parentElement;
-    span.classList.add("logo-ini");
-    span.textContent = img.dataset.ini;
-  }
-}, true);
 
 // Back on the tab after a while: fresh data.
 document.addEventListener("visibilitychange", () => {
