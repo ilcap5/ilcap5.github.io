@@ -192,7 +192,7 @@ table.jobs { width: 100%; border-collapse: collapse; }
 .c-status { min-width: 180px; }
 .c-dec { white-space: nowrap; }
 .decide { display: inline-flex; gap: 6px; }
-.decide button { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px; border-radius: 999px; font-size: 13.5px;
+.decide button { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px; border-radius: var(--r-ctl); font-size: 13.5px;
   font-weight: 600; cursor: pointer; border: 1px solid var(--line-2); background: var(--panel); color: var(--body);
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 140ms var(--ease-out); }
 .decide button:active { transform: scale(.96); }
