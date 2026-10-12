@@ -1,7 +1,7 @@
 import { CONFIG } from "./config.js";
 import { DemoStore, SheetsStore } from "./store.js";
 import {
-  APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
+  APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
 } from "./schema.js";
@@ -491,8 +491,9 @@ function actionBox(j) {
   const reg = /^s[iì]/i.test(j.registration) ? `<p class="small amber">Per candidarti serve un account su ${esc(j.portal || "questo portale")}.</p>` : "";
   if (j.status === S.NEW && !j.decision) {
     if (state.rejecting) {
-      return `<div class="action-box"><b>Cosa non ti convince?</b><p class="small muted">Il motivo insegna all'agente cosa non proporti più.</p>
-        <div class="chips pick">${REJECT_REASONS.map((r) => `<button class="chip${state.reason === r ? " on" : ""}" data-action="reason" data-reason="${esc(r)}">${esc(r)}</button>`).join("")}</div>
+      return `<div class="action-box"><b>Cosa non ti convince?</b><p class="small muted">Il motivo decide cosa impara l'agente.</p>
+        <div class="chips pick">${REJECT_REASONS.map((r) => `<button class="chip${state.reason === r ? " on" : ""}" data-action="reason" data-reason="${esc(r)}" aria-pressed="${state.reason === r}">${esc(r)}</button>`).join("")}</div>
+        <p class="small muted" id="reject-effect" aria-live="polite">${state.reason ? esc(REJECT_EFFECTS[state.reason] || "") : "Scegli un motivo."}</p>
         <textarea id="f-reject-note" rows="2" aria-label="Nota per l'agente" placeholder="Una riga per l'agente, se vuoi"></textarea>
         <div class="row-btns"><button class="btn btn-primary" data-action="confirm-no" data-id="${esc(j.id)}" ${state.reason ? "" : "disabled"}>Scarta l'offerta</button>
         <button class="btn btn-quiet" data-action="cancel-no">Annulla</button></div></div>`;
@@ -593,7 +594,11 @@ document.addEventListener("click", async (e) => {
   if (a === "cancel-no") { state.rejecting = false; state.reason = ""; return renderDrawer(); }
   if (a === "reason") {
     state.reason = el.dataset.reason;
-    $("#drawer").querySelectorAll(".pick .chip").forEach((c) => c.classList.toggle("on", c === el));
+    $("#drawer").querySelectorAll(".pick .chip").forEach((c) => {
+      c.classList.toggle("on", c === el);
+      c.setAttribute("aria-pressed", String(c === el));
+    });
+    $("#reject-effect").textContent = REJECT_EFFECTS[state.reason] || "";
     $("[data-action=confirm-no]").disabled = false;
     return;
   }

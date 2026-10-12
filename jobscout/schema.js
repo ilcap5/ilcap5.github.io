@@ -29,8 +29,19 @@ export const INTERVIEWING = new Set([S.SCREENING, S.ASSESSMENT, S.INTERVIEW, S.F
 export const FINAL = new Set([S.OFFER, S.REJECTED, S.NO_ANSWER, S.WITHDRAWN, S.EXPIRED]);
 export const PRE_APPLY = new Set([S.NEW, S.STANDBY, S.CV_READY, S.CV_CHECK]);
 
-export const REJECT_REASONS = ["Troppo senior", "Overqualified (troppo junior)", "Ruolo non in linea",
-  "Azienda non interessante", "Settore non interessante", "RAL bassa", "Sede / modalità", "Altro"];
+// Motivo N -> what the agent learns from it. Same list as REJECT_EFFECTS in jobagent/sheets.py.
+export const REJECT_EFFECTS = {
+  "Ruolo non interessante": "Non ti propongo più ruoli di questo tipo, in nessuna azienda.",
+  "Azienda ok, ruolo non in linea": "Scarto solo questa offerta: l'azienda e i ruoli simili restano tra le proposte.",
+  "Azienda non interessante": "Non ti propongo più offerte di questa azienda.",
+  "Troppo senior": "Abbasso il massimo di anni richiesti e scarto offerte simili per livello.",
+  "Troppo junior": "Alzo il minimo di anni richiesti in quest'area e scarto offerte simili per livello.",
+  "Settore non interessante": "Non ti propongo più offerte di questo settore.",
+  "RAL bassa": "Scarto solo questa offerta: la soglia della RAL resta quella impostata.",
+  "Sede / modalità": "Scarto solo questa offerta.",
+  "Altro": "Scarto solo questa offerta. Se scrivi una nota, l'agente la usa come esempio.",
+};
+export const REJECT_REASONS = Object.keys(REJECT_EFFECTS);
 
 export const FOLLOWUP_STEP = "Attendere risposta, poi follow-up";
 
