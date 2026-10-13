@@ -18,6 +18,16 @@ const SAVE_LABEL = {
   bug: () => "Segnala nel report",
 };
 
+// Lu's mark: a rounded head with a dark visor and two green eyes. Drawn here (not a stock icon) so it is the same
+// everywhere: round button, chat header, next to Lu's messages and in the offer detail. Colours come from CSS.
+export const luMark = (size = 24) => `<svg class="lu-mark" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true">
+  <path class="lu-mark-ant" d="M16 9V5.6" stroke-width="1.8" stroke-linecap="round"/><circle class="lu-mark-eye" cx="16" cy="4.2" r="2"/>
+  <rect class="lu-mark-ear" x="2.6" y="15" width="3" height="7" rx="1.5"/><rect class="lu-mark-ear" x="26.4" y="15" width="3" height="7" rx="1.5"/>
+  <rect class="lu-mark-head" x="5" y="8.6" width="22" height="19" rx="7.5"/>
+  <rect class="lu-mark-visor" x="8.4" y="13.4" width="15.2" height="8.6" rx="4.3"/>
+  <g class="lu-mark-eyes"><rect class="lu-mark-eye" x="11.4" y="15.9" width="3.1" height="3.6" rx="1.55"/>
+  <rect class="lu-mark-eye" x="17.5" y="15.9" width="3.1" height="3.6" rx="1.55"/></g></svg>`;
+
 let ctx = null; // { getStore, getJobs, getSelected, icon, esc, toast }
 const chat = { open: false, jobId: null, messages: [], busy: false, returnFocus: null };
 
@@ -32,7 +42,7 @@ export function initAssistant(deps) {
   if ($id("lu")) return;
   document.body.insertAdjacentHTML("beforeend", `
     <button class="lu-fab" id="lu-fab" data-asst="open" hidden aria-label="Apri Lu, l'assistente" aria-controls="lu" aria-expanded="false"
-      title="Chiedi a Lu">${ctx.icon("robot", 26)}</button>
+      title="Chiedi a Lu">${luMark(40)}</button>
     <section class="lu" id="lu" role="dialog" aria-labelledby="lu-title" tabindex="-1" hidden></section>`);
   document.addEventListener("click", onClick);
   document.addEventListener("keydown", (e) => {
@@ -88,26 +98,28 @@ function render() {
     ? `Ciao, sono Lu. Stai guardando ${j.title} di ${j.company}: chiedimi pure, anche se qualcosa non ti torna.`
     : "Ciao, sono Lu. Ti aiuto a muoverti nella dashboard e a capire le offerte. Se vedi qualcosa che non torna dimmelo, lo faccio sapere all'agente.";
   const last = chat.messages.length - 1;
+  const avatar = `<span class="lu-mini">${luMark(16)}</span>`;
   const msgs = chat.messages.map((m, i) => {
     if (m.role === "user") return `<div class="msg msg-user"><p>${esc(m.content)}</p></div>`;
     const f = m.feedback;
     const canSave = f && f.type !== "none" && !m.saved && SAVE_LABEL[f.type] && (f.type !== "company_tier" || (f.company && f.tier));
     const follow = i === last && !chat.busy && m.followUps?.length ? chips(m.followUps) : "";
-    return `<div class="msg msg-bot"><p>${esc(m.content)}</p>
+    return `<div class="lu-row">${avatar}<div class="msg msg-bot"><p>${esc(m.content)}</p>
       ${canSave ? `<button class="btn btn-quiet btn-sm" data-asst="save" data-i="${i}">${esc(SAVE_LABEL[f.type](f))}</button>` : ""}
-      ${m.saved ? `<p class="small muted">Fatto, l'agente ne terrà conto dalla prossima ricerca.</p>` : ""}</div>${follow}`;
+      ${m.saved ? `<p class="small muted">Fatto, l'agente ne terrà conto dalla prossima ricerca.</p>` : ""}</div></div>${follow}`;
   }).join("");
   $id("lu").innerHTML = `
     <header class="lu-head">
-      <span class="lu-avatar" aria-hidden="true">${icon("robot", 22)}</span>
-      <div class="lu-who"><h2 id="lu-title">Lu</h2><p>${j ? `Su: ${esc(j.company)}` : "Assistente di JobScout.ai"}</p></div>
+      <span class="lu-avatar">${luMark(30)}</span>
+      <div class="lu-who"><h2 id="lu-title">Lu</h2>
+        <p>${j ? `Sull'offerta di ${esc(j.company)}` : "Il tuo assistente su JobScout.ai"}</p></div>
       <button class="btn btn-icon" data-asst="close" aria-label="Chiudi Lu">${icon("close")}</button>
     </header>
     <div class="lu-log" id="lu-log" role="log" aria-live="polite">
-      <div class="msg msg-bot"><p>${esc(hello)}</p></div>
+      <div class="lu-row">${avatar}<div class="msg msg-bot"><p>${esc(hello)}</p></div></div>
       ${chat.messages.length ? "" : chips(j ? JOB_STARTERS(j) : STARTERS)}
       ${msgs}
-      ${chat.busy ? `<div class="msg msg-bot lu-typing" role="status" aria-label="Lu sta scrivendo"><span></span><span></span><span></span></div>` : ""}
+      ${chat.busy ? `<div class="lu-row">${avatar}<div class="msg msg-bot lu-typing" role="status" aria-label="Lu sta scrivendo"><span></span><span></span><span></span></div></div>` : ""}
     </div>
     <div class="lu-form">
       <textarea id="lu-input" rows="1" placeholder="Scrivi a Lu" aria-label="Messaggio per Lu" ${chat.busy ? "disabled" : ""}></textarea>

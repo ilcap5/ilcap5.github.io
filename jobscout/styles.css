@@ -30,6 +30,7 @@
     --m85-bg: #187A4C; --m85: #FFFFFF; --m70-bg: #1B3F2A; --m70: #8FE0B9; --m50-bg: #3A3212; --m50: #F2CF6B;
     --m30-bg: #3E2814; --m30: #F5B27E; --m0-bg: #3D1C19; --m0: #F4A196;
     --shadow: 0 1px 2px rgb(0 0 0 / .3); --shadow-lg: -24px 0 60px -20px rgb(0 0 0 / .6);
+    --lu-tile: #1B6B4E;
     color-scheme: dark;
   }
 }
@@ -366,30 +367,53 @@ table.jobs { width: 100%; border-collapse: collapse; }
 .faq-empty { margin: 8px 0 20px; }
 a.brand { color: inherit; text-decoration: none; }
 
-/* ---------- Lu, the assistant (assistant.js): round button at the bottom right, chat window above it */
-.lu-fab { position: fixed; right: 24px; bottom: 24px; z-index: 35; width: 58px; height: 58px; border-radius: 50%; border: 0;
-  display: grid; place-items: center; background: var(--brand); color: var(--on-brand); cursor: pointer;
-  box-shadow: 0 10px 28px -8px rgb(10 30 22 / .45), 0 2px 6px rgb(10 30 22 / .18);
-  transition: transform 180ms var(--ease-out), box-shadow 180ms ease; }
-.lu-fab:hover { transform: translateY(-2px); box-shadow: 0 14px 32px -8px rgb(10 30 22 / .5), 0 2px 6px rgb(10 30 22 / .2); }
+/* ---------- Lu, the assistant (assistant.js): round button at the bottom right, chat window above it.
+   Lu's mark keeps the same colours in light and dark: deep green tile, pale head, dark visor, green eyes. */
+:root { --lu-tile: #0B3B2E; --lu-head: #F2FAF5; --lu-visor: #0B3B2E; --lu-eye: #4BE39A; }
+.lu-mark { display: block; overflow: visible; }
+.lu-mark-head { fill: var(--lu-head); }
+.lu-mark-ear { fill: var(--lu-head); opacity: .55; }
+.lu-mark-ant { stroke: var(--lu-head); fill: none; }
+.lu-mark-visor { fill: var(--lu-visor); }
+.lu-mark-eye { fill: var(--lu-eye); }
+.lu-mark-eyes { transform-box: fill-box; transform-origin: center; }
+
+.lu-fab { position: fixed; right: 24px; bottom: 24px; z-index: 35; width: 60px; height: 60px; border-radius: 50%; border: 0; padding: 0;
+  display: grid; place-items: center; cursor: pointer; background: var(--lu-tile);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .12), 0 0 0 1px rgb(11 59 46 / .9), 0 12px 28px -10px rgb(6 28 20 / .55), 0 3px 8px rgb(6 28 20 / .18);
+  transition: transform 180ms var(--ease-out), box-shadow 180ms ease, opacity 160ms ease; }
+.lu-fab .lu-mark { transition: transform 220ms var(--ease-out); }
+@starting-style { .lu-fab { opacity: 0; transform: translateY(8px) scale(.94); } }
+@media (hover: hover) and (pointer: fine) {
+  .lu-fab:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgb(255 255 255 / .12), 0 0 0 1px rgb(11 59 46 / .9), 0 16px 34px -10px rgb(6 28 20 / .6), 0 3px 8px rgb(6 28 20 / .2); }
+  .lu-fab:hover .lu-mark { transform: rotate(-6deg); }
+  .lu-fab:hover .lu-mark-eyes { animation: lu-blink 420ms ease 80ms 1; }
+}
 .lu-fab:active { transform: scale(.96); }
 .lu-fab:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+@keyframes lu-blink { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(.15); } }
 .lu[hidden], .lu-fab[hidden] { display: none; }
-body.lu-open .lu-fab { opacity: 0; pointer-events: none; transform: scale(.8); }
-.lu { position: fixed; right: 24px; bottom: 24px; z-index: 45; width: min(400px, calc(100vw - 32px)); height: min(620px, calc(100vh - 48px));
+body.lu-open .lu-fab { opacity: 0; pointer-events: none; transform: scale(.9); }
+
+.lu { position: fixed; right: 24px; bottom: 24px; z-index: 45; width: min(400px, calc(100vw - 32px)); height: min(640px, calc(100vh - 48px));
   display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; outline: 0;
-  box-shadow: 0 24px 60px -18px rgb(10 30 22 / .4), 0 4px 14px rgb(10 30 22 / .12); overflow: hidden;
+  box-shadow: 0 28px 70px -20px rgb(10 30 22 / .42), 0 6px 16px rgb(10 30 22 / .1); overflow: hidden;
   transform-origin: bottom right; transition: transform 220ms var(--ease-out), opacity 180ms ease; }
 .lu.opening, .lu.closing { opacity: 0; transform: translateY(10px) scale(.96); }
-.lu.closing { transition-duration: 140ms; transition-timing-function: ease-in; }
-.lu-head { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px 16px; border-bottom: 1px solid var(--line); }
-.lu-avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none;
-  background: var(--brand-soft); color: var(--brand-2); }
-.lu-who { flex: 1; min-width: 0; }
-.lu-who h2 { font-size: 16.5px; font-weight: 650; letter-spacing: -.01em; }
+.lu.closing { transition-duration: 140ms; transition-timing-function: ease-out; }
+.lu-head { display: flex; align-items: center; gap: 12px; padding: 14px 12px 14px 16px; border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--brand-soft) 55%, var(--panel)); }
+.lu-avatar { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; flex: none; background: var(--lu-tile);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .12), 0 0 0 1px rgb(11 59 46 / .9); }
+.lu-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.lu-who h2 { font-size: 18px; font-weight: 680; letter-spacing: -.025em; line-height: 1.15; }
 .lu-who p { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lu-row { display: flex; gap: 8px; align-items: flex-end; max-width: 92%; }
+.lu-row .msg { max-width: none; min-width: 0; }
+.lu-mini { width: 24px; height: 24px; border-radius: 8px; display: inline-grid; place-items: center; flex: none; background: var(--lu-tile); }
+.dr-ask .lu-mini { width: 22px; height: 22px; border-radius: 7px; }
 .lu-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px 14px; overscroll-behavior: contain; }
-.lu-sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.lu-sugg { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 32px; }
 .lu-chip { border: 1px solid var(--line-2); background: var(--panel); color: var(--brand-2); border-radius: 10px; padding: 7px 11px;
   font: inherit; font-size: 13.5px; font-weight: 550; text-align: left; cursor: pointer; transition: background 120ms ease, border-color 120ms ease; }
 .lu-chip:hover { background: var(--brand-soft); border-color: transparent; }

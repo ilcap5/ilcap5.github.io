@@ -1,4 +1,4 @@
-import { initAssistant, openAssistant, showLu } from "./assistant.js";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js";
 import { CONFIG } from "./config.js";
 import { DemoStore, SheetsStore } from "./store.js";
 import {
@@ -31,7 +31,6 @@ const PATHS = {
   send: '<path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/>',
   question: '<circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 0 1 4.4.9c0 1.6-2.2 2-2.2 3.4"/><path d="M12 16.8v.2"/>',
   sheet: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/>',
-  robot: '<rect x="4.5" y="8" width="15" height="11" rx="3.5"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1.2"/><path d="M9.5 12.5v1M14.5 12.5v1M10 16.2h4M2.5 12v3M21.5 12v3"/>',
   chat: '<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 9.5h8M8 12.5h5"/>',
 };
 const icon = (name, size = 18) => `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -442,7 +441,7 @@ function renderDrawer() {
     <div class="dr-pills">${statusPill(j)}${j.role_fit ? `<span class="pill tone-line">${esc(j.role_fit)}</span>` : ""}
       ${j.priority === "Alta" ? `<span class="pill tone-line strong">Priorità alta</span>` : ""}</div>
     ${actionBox(j)}
-    <p class="small dr-ask"><button class="linkish" data-action="assistant" data-id="${esc(j.id)}">${icon("robot", 16)}Dubbi su questa offerta? Chiedi a Lu</button></p>
+    <p class="small dr-ask"><button class="linkish" data-action="assistant" data-id="${esc(j.id)}"><span class="lu-mini">${luMark(16)}</span>Dubbi su questa offerta? Chiedi a Lu</button></p>
 
     <section class="dr-sec">
       <div class="score-row"><span class="score-big ${matchTone(j.score)}">${esc(j.score || "-")}</span>
