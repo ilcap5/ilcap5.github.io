@@ -37,8 +37,8 @@
       <thead><tr><th scope="col">Fornitore</th><th scope="col">Per cosa</th></tr></thead>
       <tbody>
         <tr><td>Google</td><td>Accesso con Google, Gmail, Sheets, Drive.</td></tr>
-        <tr><td>Anthropic</td><td>Analisi delle offerte, lettura del CV, preparazione dei CV e delle bozze. Secondo i termini commerciali di Anthropic i dati inviati tramite API non sono usati per addestrare i modelli.</td></tr>
-        <tr><td>Cloudflare</td><td>Il piccolo servizio che riceve CV e risposte dalla pagina Profilo, verifica l'accesso e li inoltra ad Anthropic, senza salvarli. Avvia anche i giri programmati.</td></tr>
+        <tr><td>Anthropic</td><td>Analisi delle offerte, lettura del CV, preparazione dei CV e delle bozze, risposte dell'assistente della dashboard. Secondo i termini commerciali di Anthropic i dati inviati tramite API non sono usati per addestrare i modelli.</td></tr>
+        <tr><td>Cloudflare</td><td>Il piccolo servizio che riceve CV e risposte dalla pagina Profilo e le domande all'assistente (con i dati dell'offerta aperta), verifica l'accesso e li inoltra ad Anthropic, senza salvarli. Avvia anche i giri programmati.</td></tr>
         <tr><td>GitHub</td><td>Ospita queste pagine e fa girare l'agente (GitHub Actions). Come ogni hosting registra gli indirizzi IP dei visitatori per sicurezza.</td></tr>
       </tbody>
     </table>
@@ -61,8 +61,8 @@
     <h2 lang="en">English summary</h2>
     <p lang="en">JobScout.ai (OAuth app "Job Agent Bot") is a personal tool used only by its owner. With the owner's authorization it reads job
     alerts and application replies in Gmail, keeps a tracker in Google Sheets and stores tailored CVs in Google Drive. Job posts, the owner's CV and
-    application emails may be processed through the Anthropic API; the profile page sends the CV through a small Cloudflare Worker that does not
-    store it. Data is not sold or used for advertising. Use of information received from Google APIs adheres to the Google API Services User Data
+    application emails may be processed through the Anthropic API; the profile page and the dashboard assistant send the CV or the question through a small Cloudflare Worker
+    that does not store them; assistant questions are logged only in the owner's own Google Sheet. Data is not sold or used for advertising. Use of information received from Google APIs adheres to the Google API Services User Data
     Policy, including the Limited Use requirements. Access can be revoked at myaccount.google.com/permissions.</p>
   </main>
   <footer>

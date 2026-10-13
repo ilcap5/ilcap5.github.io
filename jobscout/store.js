@@ -165,6 +165,13 @@ SheetsStore.prototype.setState = async function (key, value) {
   }
 };
 
+// Rows appended at the bottom of a tab (assistant log, cost log). The tab must exist: the agent creates it.
+SheetsStore.prototype.appendRows = async function (tab, rows) {
+  await this._fetch(`/values/${encodeURIComponent(`${tab}!A:I`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+    method: "POST", body: JSON.stringify({ values: rows }),
+  });
+};
+
 SheetsStore.prototype.api = async function (baseUrl, path, body, retry = true) {
   if (!baseUrl) throw new Error("Il servizio che legge il CV non è ancora attivo.");
   if (!this.token) await this.signIn();
@@ -198,7 +205,16 @@ export class DemoStore {
   }
   async getState(key) { return this.state?.[key] || ""; }
   async setState(key, value) { this.state = { ...(this.state || {}), [key]: value }; }
+  async appendRows() { /* sample data: nothing is saved */ }
   async api(_base, path, body) {
+    if (path === "/v1/chat") {
+      await new Promise((r) => setTimeout(r, 900));
+      return {
+        answer: "Questa è la prova con dati di esempio: l'assistente vero risponde dopo l'accesso con Google. Puoi chiedere come funziona una funzione, segnalare un dato che non torna o un errore.",
+        kind: "domanda", feedback: { type: "none", company: "", tier: "", note: "" }, faq_topic: "prova",
+        usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
+      };
+    }
     const { demoInfer, demoBuild } = await import("./demo-profile.js");
     await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
     return path.endsWith("infer") ? demoInfer() : demoBuild(body);
