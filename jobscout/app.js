@@ -143,7 +143,7 @@ function shell() {
           </select>
         </div>
       </div>
-      <nav class="tabs" id="tabs" role="tablist" aria-label="Fasi"></nav>
+      <div class="tabs-wrap"><nav class="tabs" id="tabs" role="tablist" aria-label="Fasi"></nav><span class="tab-ind" id="tab-ind" aria-hidden="true"></span></div>
       <div id="table"></div>
     </section>
     <p class="foot" id="foot"></p>
@@ -195,10 +195,15 @@ function renderHero() {
   if (c.ready.length) parts.push(`<b>${c.ready.length}</b> ${c.ready.length === 1 ? "CV è pronto" : "CV sono pronti"} da inviare`);
   let line = parts.length ? parts.join(" e ") + "." : "Niente in sospeso: tocca alle aziende.";
   const next = nextRun();
+  const cta = c.review.length
+    ? `<button class="btn btn-primary hero-cta" data-action="tab" data-tab="review">Valuta le offerte${icon("chevron", 16)}</button>`
+    : c.ready.length ? `<button class="btn btn-primary hero-cta" data-action="tab" data-tab="ready">Vedi i CV pronti${icon("chevron", 16)}</button>` : "";
   $("#hero").innerHTML = `
-    <p class="hero-date">${esc(longDate())}</p>
-    <h1>${hello}${name}</h1>
-    <p class="hero-line">${line}${next ? ` <span class="muted">Prossima ricerca ${esc(next)}.</span>` : ""}</p>`;
+    <div class="hero-txt">
+      <p class="hero-date">${esc(longDate())}</p>
+      <h1>${hello}${name}</h1>
+      <p class="hero-line">${line}${next ? ` <span class="muted">Prossima ricerca ${esc(next)}.</span>` : ""}</p>
+    </div>${cta}`;
 }
 
 // ================================================================ KPIs and insights
@@ -303,6 +308,17 @@ function renderTabs() {
     if (!n && !["all", "review", "applied"].includes(t.key) && state.tab !== t.key) return "";
     return `<button role="tab" aria-selected="${state.tab === t.key}" class="tab${state.tab === t.key ? " on" : ""}" data-action="tab" data-tab="${t.key}">${t.label}<span class="tab-n">${n}</span></button>`;
   }).join("");
+  placeTabIndicator();
+}
+
+// One underline that slides to the selected tab: it shows where you moved from and to.
+function placeTabIndicator() {
+  const on = $("#tabs .tab.on"), ind = $("#tab-ind");
+  if (!on || !ind) return;
+  const x = on.offsetLeft - $("#tabs").scrollLeft + 9;
+  ind.style.width = `${Math.max(0, on.offsetWidth - 18)}px`;
+  ind.style.transform = `translateX(${x}px)`;
+  if (!ind.classList.contains("ready")) requestAnimationFrame(() => ind.classList.add("ready"));
 }
 
 function visibleJobs() {
@@ -333,7 +349,7 @@ function statusLabel(job) {
 }
 
 function statusPill(job) {
-  return `<span class="pill tone-${STATUS_TONE[job.status] || "grey"}">${esc(statusLabel(job))}</span>`;
+  return `<span class="pill st tone-${STATUS_TONE[job.status] || "grey"}">${esc(statusLabel(job))}</span>`;
 }
 
 function statusSelect(job, cls = "") {
@@ -590,7 +606,7 @@ document.addEventListener("click", async (e) => {
     state.tab = el.dataset.tab;
     renderTabs();
     renderTable();
-    if (el.classList.contains("kpi") || el.classList.contains("todo")) $(".list-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (["kpi", "todo", "hero-cta"].some((c) => el.classList.contains(c))) $(".list-panel").scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
   if (a === "open") { state.selected = id; state.rejecting = false; state.reason = ""; renderTable(); renderDrawer(); return; }
@@ -656,6 +672,10 @@ document.addEventListener("keydown", (e) => {
 
 
 // Back on the tab after a while: fresh data.
+window.addEventListener("resize", () => placeTabIndicator());
+document.addEventListener("scroll", (e) => { if (e.target.id === "tabs") placeTabIndicator(); }, true);
+document.fonts?.ready.then(() => placeTabIndicator());
+
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && state.loadedAt && Date.now() - state.loadedAt > 5 * 60000 && !state.selected) reload();
 });
