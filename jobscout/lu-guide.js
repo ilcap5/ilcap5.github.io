@@ -12,11 +12,12 @@ Riquadri numerici (cliccabili): Da valutare, CV pronti, Candidature, Risposte (q
 Colloqui. Cliccandoli si apre la scheda corrispondente della lista.
 Lista "Offerte e candidature": ricerca per azienda o ruolo, filtro per tipo di ruolo, ordinamento (Più recenti, Match
 più alto, Data di invio, Prossimo passo). Schede: Tutte, Da valutare, CV pronti, Inviate, Colloqui, Offerte, Chiuse,
-Scartate. Ogni riga mostra azienda, ruolo, match colorato e stato; lo stato si cambia anche dal menu nella riga.
+Scartate. Ogni riga mostra il logo dell'azienda (le iniziali se non c'è), ruolo, match colorato e stato; lo stato si cambia anche dal menu nella riga.
 Cliccando una riga si apre il dettaglio dell'offerta a destra:
 - riquadro "Ti interessa?": "Sì, prepara il CV" (il CV su misura arriva la sera stessa tra le 19 e le 23, con
   un'email) oppure "No" (si sceglie un motivo: ogni motivo spiega sotto cosa impara l'agente; nota facoltativa);
-- dopo il sì: "Ho cambiato idea" annulla finché il CV non è pronto;
+- dopo il sì: "Rimetti da valutare" annulla finché il CV non è pronto; "Cambia in No" (sotto il Sì nella lista) o "Non mi
+  interessa più" (nel dettaglio) trasforma il sì in un no con motivo, finché la candidatura non è inviata;
 - con il CV pronto: "Apri il CV" (Google Drive, PDF e Word) e "Vai alla candidatura"; la candidatura si invia
   sempre a mano, poi si segna lo stato "Candidata" e la data di invio;
 - "Perché questo match": il dettaglio del punteggio (competenze, requisiti, coerenza del ruolo, esperienza);

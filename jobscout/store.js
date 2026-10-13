@@ -207,6 +207,7 @@ export class DemoStore {
   async setState(key, value) { this.state = { ...(this.state || {}), [key]: value }; }
   async appendRows() { /* sample data: nothing is saved */ }
   async api(_base, path, body) {
+    if (path === "/v1/logos") return { logos: {} };
     if (path === "/v1/chat") {
       await new Promise((r) => setTimeout(r, 900));
       return {

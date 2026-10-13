@@ -38,7 +38,7 @@
       <tbody>
         <tr><td>Google</td><td>Accesso con Google, Gmail, Sheets, Drive.</td></tr>
         <tr><td>Anthropic</td><td>Analisi delle offerte, lettura del CV, preparazione dei CV e delle bozze, risposte dell'assistente della dashboard. Secondo i termini commerciali di Anthropic i dati inviati tramite API non sono usati per addestrare i modelli.</td></tr>
-        <tr><td>Cloudflare</td><td>Il piccolo servizio che riceve CV e risposte dalla pagina Profilo e le domande all'assistente (con i dati dell'offerta aperta), verifica l'accesso e li inoltra ad Anthropic, senza salvarli. Avvia anche i giri programmati.</td></tr>
+        <tr><td>Cloudflare</td><td>Il piccolo servizio che riceve CV e risposte dalla pagina Profilo e le domande all'assistente (con i dati dell'offerta aperta), verifica l'accesso e li inoltra ad Anthropic, senza salvarli. Recupera anche le icone delle aziende delle offerte dal servizio favicon di Google, inviando solo il sito dell'azienda (mai chi lo sta guardando), e avvia i giri programmati.</td></tr>
         <tr><td>GitHub</td><td>Ospita queste pagine e fa girare l'agente (GitHub Actions). Come ogni hosting registra gli indirizzi IP dei visitatori per sicurezza.</td></tr>
       </tbody>
     </table>

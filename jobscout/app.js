@@ -4,7 +4,7 @@ import { CONFIG } from "./config.js";
 import { DemoStore, SheetsStore } from "./store.js";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
-  addDays, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
+  addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
 } from "./schema.js";
 
@@ -16,7 +16,7 @@ const store_set = (k, v) => { try { v == null ? localStorage.removeItem(k) : loc
 
 const state = {
   store: null, jobs: [], url: "", loadedAt: 0, tab: "all", q: "", fit: "", sort: "found",
-  selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
+  logos: {}, selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
 };
 
 // ================================================================ icons (one stroke, one size)
@@ -99,6 +99,7 @@ async function start(store) {
 }
 
 async function reload(first = false) {
+  if (first) state.logos = readLogos();
   document.body.classList.add("is-loading");
   try {
     const { jobs, url } = await state.store.load();
@@ -109,6 +110,7 @@ async function reload(first = false) {
     state.deepJob = null;
     if (state.selected && !jobs.some((j) => j.id === state.selected)) state.selected = null;
     renderAll();
+    loadLogos();
   } catch (e) {
     if (state.store instanceof SheetsStore && !state.store.signedIn) return showLogin(state.store, e.message);
     if (first) $("#table").innerHTML = emptyState("Non riesco a leggere il foglio", e.message, `<button class="btn btn-quiet" data-action="reload">Riprova</button>`);
@@ -343,10 +345,57 @@ function visibleJobs() {
     .sort((a, b) => by(b) - by(a) || (Number(b.score) || 0) - (Number(a.score) || 0));
 }
 
-// Company initials, drawn here: no logo service is called, so the page talks only to Google Sheets and the
-// profile API (no third-party request carrying the company you are looking at).
+// Company logo: the icon comes from our API (it fetches it from the company website, the page never calls a logo
+// service), the initials stay while it loads or when the company has none.
 function logo(job, size = 40) {
-  return `<span class="logo logo-ini" style="--s:${size}px" aria-hidden="true">${esc(initials(job.company))}</span>`;
+  const dom = companyDomain(job);
+  const url = dom && state.logos[dom]?.u;
+  if (url) return `<span class="logo" style="--s:${size}px" aria-hidden="true"><img src="${esc(url)}" alt=""></span>`;
+  return `<span class="logo logo-ini" style="--s:${size}px" aria-hidden="true"${dom ? ` data-dom="${esc(dom)}"` : ""}>${esc(initials(job.company))}</span>`;
+}
+
+// ================================================================ logos
+const LOGO_KEY = "jobscout.logos.v1";
+const LOGO_DAYS = 14;   // a found icon is asked again after two weeks
+const NOLOGO_DAYS = 3;  // a company without icon is asked again after three days
+
+function readLogos() {
+  try {
+    const all = JSON.parse(localStorage.getItem(LOGO_KEY) || "{}");
+    const now = Date.now();
+    return Object.fromEntries(Object.entries(all).filter(([, v]) => v && now - v.t < (v.u ? LOGO_DAYS : NOLOGO_DAYS) * 864e5));
+  } catch { return {}; }
+}
+
+function writeLogos() {
+  try { localStorage.setItem(LOGO_KEY, JSON.stringify(state.logos)); } catch { /* full or blocked: they stay in memory */ }
+}
+
+async function loadLogos() {
+  if (!CONFIG.apiUrl && !(state.store instanceof DemoStore)) return;
+  const missing = [...new Set(state.jobs.map(companyDomain).filter((d) => d && !state.logos[d]))].slice(0, 80);
+  if (!missing.length) return;
+  try {
+    const { logos = {} } = await state.store.api(CONFIG.apiUrl, "/v1/logos", { domains: missing }, false);
+    const t = Date.now();
+    for (const d of missing) state.logos[d] = { u: typeof logos[d] === "string" && logos[d].startsWith("data:image/") ? logos[d] : "", t };
+    writeLogos();
+    paintLogos();
+  } catch { /* initials stay: the logos are a nicety */ }
+}
+
+// Swap the initials already on screen for the icons just arrived, without redrawing (keeps focus and typing).
+function paintLogos() {
+  document.querySelectorAll(".logo-ini[data-dom]").forEach((el) => {
+    const url = state.logos[el.dataset.dom]?.u;
+    if (!url) return;
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "";
+    el.classList.remove("logo-ini");
+    el.removeAttribute("data-dom");
+    el.replaceChildren(img);
+  });
 }
 
 function statusLabel(job) {
@@ -381,9 +430,17 @@ function decision(j, compact = false) {
       <button class="btn-no" data-action="quick-no" data-id="${esc(j.id)}" aria-label="No, scarta ${esc(j.title)}">${icon("close", 14)} No</button></div>`;
   }
   if (compact) return "";
-  if (/^y/i.test(j.decision)) return `<span class="dec dec-yes">${icon("check", 15)} Sì</span>`;
+  if (/^y/i.test(j.decision)) {
+    const change = canSwitchToNo(j) ? `<button class="dec-change" data-action="quick-no" data-id="${esc(j.id)}" aria-label="Cambia in No: ${esc(j.title)}">Cambia in No</button>` : "";
+    return `<span class="dec dec-yes">${icon("check", 15)} Sì${change}</span>`;
+  }
   if (/^n/i.test(j.decision)) return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}</span>`;
   return `<span class="muted">-</span>`;
+}
+
+// A yes can still become a no until the application is sent (then the status is "Ritirata da me").
+function canSwitchToNo(j) {
+  return Boolean(j.id) && /^y/i.test(j.decision) && [S.NEW, S.CV_READY, S.CV_CHECK].includes(j.status);
 }
 
 function emptyState(title, text, action = "") {
@@ -515,25 +572,31 @@ function renderDrawer() {
   }
 }
 
+// The reasons for a no: same box for a first no and for a yes that becomes a no.
+function rejectBox(j) {
+  const was = /^y/i.test(j.decision);
+  return `<div class="action-box"><b>${was ? "Da Sì a No: cosa è cambiato?" : "Cosa non ti convince?"}</b>
+    <p class="small muted">${was ? "Il motivo decide cosa impara l'agente. Il CV già pronto resta su Drive." : "Il motivo decide cosa impara l'agente."}</p>
+    <div class="chips pick">${REJECT_REASONS.map((r) => `<button class="chip${state.reason === r ? " on" : ""}" data-action="reason" data-reason="${esc(r)}" aria-pressed="${state.reason === r}">${esc(r)}</button>`).join("")}</div>
+    <p class="small muted" id="reject-effect" aria-live="polite">${state.reason ? esc(REJECT_EFFECTS[state.reason] || "") : "Scegli un motivo."}</p>
+    <textarea id="f-reject-note" rows="2" aria-label="Nota per l'agente" placeholder="Una riga per l'agente, se vuoi"></textarea>
+    <div class="row-btns"><button class="btn btn-primary" data-action="confirm-no" data-id="${esc(j.id)}" ${state.reason ? "" : "disabled"}>${was ? "Cambia in No" : "Scarta l'offerta"}</button>
+    <button class="btn btn-quiet" data-action="cancel-no">Annulla</button></div></div>`;
+}
+
 function actionBox(j) {
   if (!j.id) return "";
   const reg = /^s[iì]/i.test(j.registration) ? `<p class="small amber">Per candidarti serve un account su ${esc(j.portal || "questo portale")}.</p>` : "";
+  if (state.rejecting && ((j.status === S.NEW && !j.decision) || canSwitchToNo(j))) return rejectBox(j);
   if (j.status === S.NEW && !j.decision) {
-    if (state.rejecting) {
-      return `<div class="action-box"><b>Cosa non ti convince?</b><p class="small muted">Il motivo decide cosa impara l'agente.</p>
-        <div class="chips pick">${REJECT_REASONS.map((r) => `<button class="chip${state.reason === r ? " on" : ""}" data-action="reason" data-reason="${esc(r)}" aria-pressed="${state.reason === r}">${esc(r)}</button>`).join("")}</div>
-        <p class="small muted" id="reject-effect" aria-live="polite">${state.reason ? esc(REJECT_EFFECTS[state.reason] || "") : "Scegli un motivo."}</p>
-        <textarea id="f-reject-note" rows="2" aria-label="Nota per l'agente" placeholder="Una riga per l'agente, se vuoi"></textarea>
-        <div class="row-btns"><button class="btn btn-primary" data-action="confirm-no" data-id="${esc(j.id)}" ${state.reason ? "" : "disabled"}>Scarta l'offerta</button>
-        <button class="btn btn-quiet" data-action="cancel-no">Annulla</button></div></div>`;
-    }
     return `<div class="action-box"><b>Ti interessa?</b><p class="small muted">Con un sì l'agente prepara il CV su misura stasera, tra le 19 e le 23.</p>
       <div class="row-btns"><button class="btn btn-primary" data-action="yes" data-id="${esc(j.id)}">${icon("check", 17)} Sì, prepara il CV</button>
       <button class="btn btn-quiet" data-action="no">No</button></div></div>`;
   }
   if (j.status === S.NEW && /^y/i.test(j.decision)) {
     return `<div class="action-box soft"><b>Il CV è in preparazione</b><p class="small">Arriva stasera tra le 19 e le 23, insieme a un'email.</p>
-      <div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="undo" data-id="${esc(j.id)}">Ho cambiato idea</button></div></div>`;
+      <div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="no">Non mi interessa più</button>
+      <button class="btn btn-quiet btn-sm" data-action="undo" data-id="${esc(j.id)}">Rimetti da valutare</button></div></div>`;
   }
   if (j.status === S.CV_READY || j.status === S.CV_CHECK) {
     return `<div class="action-box"><b>${j.status === S.CV_CHECK ? "Ricontrolla il CV prima di inviarlo" : "Il CV è pronto: puoi candidarti"}</b>
@@ -542,7 +605,8 @@ function actionBox(j) {
       <div class="row-btns">
         ${j.cv_link ? `<a class="btn btn-quiet" href="${esc(j.cv_link)}" target="_blank" rel="noopener">${icon("file", 17)} Apri il CV</a>` : ""}
         ${j.apply_url || j.job_url ? `<a class="btn btn-quiet" href="${esc(j.apply_url || j.job_url)}" target="_blank" rel="noopener">Vai alla candidatura ${icon("external", 15)}</a>` : ""}
-        <button class="btn btn-primary" data-action="applied" data-id="${esc(j.id)}">${icon("send", 17)} Ho inviato la candidatura</button></div></div>`;
+        <button class="btn btn-primary" data-action="applied" data-id="${esc(j.id)}">${icon("send", 17)} Ho inviato la candidatura</button></div>
+      ${canSwitchToNo(j) ? `<div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="no">Non mi interessa più</button></div>` : ""}</div>`;
   }
   if (j.next_step && !FINAL.has(j.status)) {
     const d = parseDate(j.next_step_date);
@@ -637,10 +701,12 @@ document.addEventListener("click", async (e) => {
     const job = state.jobs.find((j) => j.id === id);
     const note = ($("#f-reject-note")?.value || "").trim();
     const fields = { decision: "N", reject_reason: state.reason, status: S.STANDBY, next_step: "", next_step_date: "" };
-    if (note) fields.notes = [job.notes, `Nota: ${note}`].filter(Boolean).join(" ");
+    const was = /^y/i.test(job.decision);
+    const extra = [was ? `Cambiata da Sì a No il ${fmtDate(today())}.` : "", note ? `Nota: ${note}` : ""].filter(Boolean).join(" ");
+    if (extra) fields.notes = [job.notes, extra].filter(Boolean).join(" ");
     state.rejecting = false;
     state.reason = "";
-    return save(id, fields, "Scartata. Me lo ricordo per le prossime ricerche.");
+    return save(id, fields, was ? "Fatto: ora è un No. Me lo ricordo per le prossime ricerche." : "Scartata. Me lo ricordo per le prossime ricerche.");
   }
   if (a === "applied") return save(id, appliedFields(), `Segnata come inviata. Il follow-up è fra ${CONFIG.followupDays} giorni.`);
   if (a === "save") {

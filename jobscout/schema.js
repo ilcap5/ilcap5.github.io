@@ -145,12 +145,26 @@ const KNOWN_DOMAINS = {
   "monitor deloitte": "deloitte.com", "deloitte": "deloitte.com", "glovo": "glovoapp.com", "satispay": "satispay.com",
   "bending spoons": "bendingspoons.com", "scalapay": "scalapay.com", "flatpay": "flatpay.com",
 };
+// Job boards, not the employer's own site: no logo from them (as NOT_COMPANY_HOSTS in emails.py).
+const NOT_COMPANY_HOSTS = ["linkedin.com", "greenhouse.io", "lever.co", "ashbyhq.com", "workable.com", "smartrecruiters.com",
+  "myworkdayjobs.com", "myworkdaysite.com", "successfactors", "taleo.net", "icims.com", "oraclecloud.com", "brassring.com",
+  "avature.net", "personio", "teamtailor.com", "recruitee.com", "bamboohr.com", "jobvite.com", "indeed.", "glassdoor.",
+  "google.com"];
 export function companyDomain(job) {
   const raw = (job.company_domain || "").trim().toLowerCase();
   if (raw) return raw.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
   const name = (job.company || "").toLowerCase();
   const key = Object.keys(KNOWN_DOMAINS).sort((a, b) => b.length - a.length).find((k) => name.includes(k));
-  return key ? KNOWN_DOMAINS[key] : "";
+  if (key) return KNOWN_DOMAINS[key];
+  for (const url of [job.apply_url, job.job_url]) {
+    let host = "";
+    try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { continue; }
+    const parts = host.split(".");
+    if (parts.length >= 2 && !NOT_COMPANY_HOSTS.some((h) => host.includes(h))) {
+      return (parts.length > 2 && ["co", "com"].includes(parts.at(-2)) ? parts.slice(-3) : parts.slice(-2)).join(".");
+    }
+  }
+  return "";
 }
 export function initials(name) {
   const words = String(name || "?").replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter(Boolean);

@@ -60,6 +60,10 @@ export const FAQ = [
         q: "Ho scartato un'offerta per sbaglio, posso tornare indietro?",
         a: "Sì: nel foglio Google cambia la colonna \"Candidarsi (Y/N)\" e, se serve, \"Motivo N\". Al giro successivo l'agente ne tiene conto.",
       },
+      {
+        q: "Avevo detto sì, ora non mi interessa più: cosa faccio?",
+        a: "Finché non hai inviato la candidatura, nella lista c'è \"Cambia in No\" sotto il Sì, e nel dettaglio dell'offerta \"Non mi interessa più\". Scegli il motivo come per un no normale: l'agente lo impara e il CV già pronto resta su Drive. Dopo l'invio usa lo stato \"Ritirata da me\".",
+      },
     ],
   },
   {
