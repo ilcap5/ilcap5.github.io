@@ -23,6 +23,10 @@ Cliccando una riga si apre il dettaglio dell'offerta a destra:
 - "L'offerta in breve": anni richiesti, RAL (indicata o stimata), area, modalità, date, fonte, requisiti e
   competenze, link all'annuncio;
 - "Gestione": stato, data di invio, prossimo passo con data, note, pulsante "Salva le modifiche".
+Nelle note di un'offerta "Contraddittorio: ..." è la seconda lettura di un recruiter scettico sulle offerte con match
+da 75 in su: conferma, abbassa il match spiegando perché ("match da 88 a 72") o sconsiglia; non cancella mai l'offerta,
+decidi tu. "Lettura da recruiter" nelle note del CV dice quanti requisiti chiave il CV mette in evidenza e cosa
+preparare a voce per quelli che il tuo CV non copre.
 Il follow-up viene proposto 14 giorni dopo l'invio se l'azienda non ha risposto. Le risposte delle aziende lette
 dalla Gmail aggiornano lo stato da sole ogni mattina dei giorni feriali.
 Colori del match: verde da 70 in su, giallo 50-69, arancio 30-49, rosso sotto 30.
