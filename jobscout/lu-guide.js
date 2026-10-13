@@ -3,10 +3,16 @@
 export const GUIDE = `
 In alto: saluto con le offerte che aspettano un sì o un no e i CV pronti, e quando parte la prossima ricerca. Accanto,
 il pulsante "Valuta le offerte" (o "Vedi i CV pronti") porta alla scheda giusta della lista.
-Barra in alto a destra: la freccia circolare aggiorna i dati; l'icona tonda con l'omino apre il menu dell'account con
+Barra in alto a destra: la campanella apre le notifiche (CV pronti, risposte delle aziende, follow-up da inviare, offerte
+nuove dell'ultima ricerca; il numero rosso dice quante non sono ancora lette, "Segna tutto come letto" le azzera e
+cliccandone una si apre l'offerta); la freccia circolare aggiorna i dati; l'icona tonda con l'omino apre il menu dell'account con
 "Vedi il tuo profilo" (il profilo di ricerca salvato), "Rifai la profilazione" (CV e domande da capo), "Abbonamento"
 (oggi il servizio è gratuito), "Apri il foglio Google", il tema (Sistema, Chiaro, Scuro), "Domande frequenti",
 "Privacy e termini", "Cambia account" ed "Esci".
+Solo per il proprietario dell'agente (amministratore) c'è in alto a sinistra la scelta "Candidature | Progetto": la vista
+Progetto ha le schede Panoramica (piano a fasi, ultimi giri dell'agente, punti aperti, attività in corso, ultimi
+documenti), SAL (report giornalieri), Consiglio (verbali del sabato) e Roadmap; i documenti nuovi hanno un punto verde
+e arrivano anche nella campanella.
 Nella profilazione la distanza massima dal centro della città si sceglie con una barra scorrevole, da 5 a 100 km.
 Riquadri numerici (cliccabili): Da valutare, CV pronti, Candidature, Risposte (quota di candidature con risposta),
 Colloqui. Cliccandoli si apre la scheda corrispondente della lista.

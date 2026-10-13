@@ -1,12 +1,14 @@
-import { accountButton, initAccount } from "./account.js?v=202610131911";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610131911";
-import { CONFIG } from "./config.js?v=202610131911";
-import { DemoStore, SheetsStore } from "./store.js?v=202610131911";
+import { accountButton, initAccount } from "./account.js?v=202610132004";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610132004";
+import { CONFIG } from "./config.js?v=202610132004";
+import { DemoStore, SheetsStore } from "./store.js?v=202610132004";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610132004";
+import { docHtml, parseProject, projectHtml } from "./project.js?v=202610132004";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610131911";
+} from "./schema.js?v=202610132004";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -16,7 +18,7 @@ const store_set = (k, v) => { try { v == null ? localStorage.removeItem(k) : loc
 
 const state = {
   store: null, jobs: [], url: "", loadedAt: 0, tab: "all", q: "", fit: "", sort: "found",
-  logos: {}, selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
+  logos: {}, view: "jobs", ptab: "overview", project: null, seen: new Set(), doc: null, selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
 };
 
 // ================================================================ icons (one stroke, one size)
@@ -102,8 +104,15 @@ async function reload(first = false) {
   if (first) state.logos = readLogos();
   document.body.classList.add("is-loading");
   try {
-    const { jobs, url } = await state.store.load();
+    const [{ jobs, url }, projectRows, seen] = await Promise.all([
+      state.store.load(),
+      state.store.loadProject().catch(() => null),
+      first ? state.store.getState(SEEN_KEY).catch(() => "") : Promise.resolve(null),
+    ]);
     state.jobs = jobs;
+    state.project = parseProject(projectRows);
+    if (!state.project && state.view === "project") state.view = "jobs";
+    if (seen !== null) { try { state.seen = new Set(JSON.parse(seen || "[]")); } catch { state.seen = new Set(); } }
     state.url = url;
     state.loadedAt = Date.now();
     if (state.deepJob && jobs.some((j) => j.id === state.deepJob)) state.selected = state.deepJob;
@@ -126,10 +135,12 @@ function shell() {
   <header class="topbar">
     <div class="topbar-in">
       ${brand()}
+      <nav class="views" id="views" aria-label="Viste" hidden></nav>
       <div class="topbar-actions" id="topbar-actions"></div>
     </div>
   </header>
-  <main class="page">
+  <main class="page" id="view-project" hidden></main>
+  <main class="page" id="view-jobs">
     <section class="hero" id="hero"></section>
     <section class="kpis" id="kpis" aria-label="Indicatori"></section>
     <section class="insights" id="insights"></section>
@@ -168,6 +179,8 @@ function renderSkeleton() {
 function renderAll() {
   showLu(true);
   renderTop();
+  renderViews();
+  if (state.view === "project") { renderProject(); renderDrawer(); return; }
   renderHero();
   renderKpis();
   renderInsights();
@@ -181,8 +194,10 @@ function renderTop() {
   const demo = state.store instanceof DemoStore;
   $("#topbar-actions").innerHTML = `
     ${demo ? `<span class="badge">Dati di esempio</span>` : ""}
+    ${bellButton(unreadCount())}
     <button class="btn btn-icon" data-action="reload" title="Aggiorna" aria-label="Aggiorna">${icon("refresh")}</button>
     ${accountButton()}`;
+  initBell({ items: notifications, seen: (id) => state.seen.has(id), onPick: pickNotification, onMarkAll: markAllSeen });
   initAccount({
     store: state.store, demo, sheetUrl: state.url, here: "dashboard",
     onExitDemo: () => { location.href = location.pathname; },
@@ -191,6 +206,62 @@ function renderTop() {
       try { await state.store.signIn("select_account"); await start(state.store); } catch (err) { toast(err.message, "error"); }
     },
   });
+}
+
+// ================================================================ views, project, notifications
+const SEEN_KEY = "notif_seen_v1";
+let seenTimer = null;
+
+function notifications() { return buildNotifications(state.jobs, state.project); }
+function unreadCount() { return notifications().filter((n) => !state.seen.has(n.id)).length; }
+
+// Read notifications are kept in the sheet (Stato), so they stay read on every device.
+function markSeen(ids) {
+  let changed = false;
+  for (const id of ids) if (!state.seen.has(id)) { state.seen.add(id); changed = true; }
+  if (!changed) return;
+  clearTimeout(seenTimer);
+  seenTimer = setTimeout(() => {
+    state.store.setState(SEEN_KEY, JSON.stringify([...state.seen].slice(-500))).catch(() => { /* retried at the next change */ });
+  }, 700);
+  renderTop();
+  refreshBell();
+  if (state.view === "project") renderProject();
+}
+function markAllSeen() { markSeen(notifications().map((n) => n.id)); }
+function markJobSeen(jobId) { markSeen(notifications().filter((n) => n.go.job === jobId).map((n) => n.id)); }
+
+function pickNotification(n) {
+  markSeen([n.id]);
+  if (n.go.url) { window.open(n.go.url, "_blank", "noopener"); return; }
+  if (n.go.doc) { state.doc = n.go.doc; state.selected = null; if (state.view !== "project") setView("project"); renderDrawer(); return; }
+  if (state.view !== "jobs") setView("jobs");
+  if (n.go.job) { state.selected = n.go.job; state.rejecting = false; state.reason = ""; renderTable(); renderDrawer(); return; }
+  if (n.go.tab) { state.tab = n.go.tab; renderTabs(); renderTable(); $(".list-panel").scrollIntoView({ behavior: "smooth", block: "start" }); }
+}
+
+function renderViews() {
+  const nav = $("#views");
+  nav.hidden = !state.project;
+  if (!state.project) return;
+  const docsNew = state.project.docs.some((d) => !state.seen.has(`doc:${d.id}`) && notifications().some((n) => n.id === `doc:${d.id}`));
+  nav.innerHTML = [["jobs", "Candidature"], ["project", "Progetto"]].map(([k, label]) =>
+    `<button class="view-btn${state.view === k ? " on" : ""}" data-action="view" data-view="${k}" aria-pressed="${state.view === k}">${label}${k === "project" && docsNew ? `<span class="view-dot" aria-hidden="true"></span>` : ""}</button>`).join("");
+}
+
+function setView(v) {
+  state.view = v;
+  $("#view-jobs").hidden = v !== "jobs";
+  $("#view-project").hidden = v !== "project";
+  if (v === "jobs") { state.doc = null; renderAll(); } else { state.selected = null; renderAll(); }
+  window.scrollTo({ top: 0 });
+}
+
+function renderProject() {
+  $("#view-jobs").hidden = true;
+  $("#view-project").hidden = false;
+  $("#view-project").innerHTML = projectHtml(state.project, state.ptab, (docId) =>
+    notifications().some((n) => n.id === `doc:${docId}`) && !state.seen.has(`doc:${docId}`));
 }
 
 function renderHero() {
@@ -504,6 +575,23 @@ const fromISO = (s) => (s ? fmtDate(parseDate(s)) : "");
 
 function renderDrawer() {
   const wrap = $("#drawer-wrap");
+  const doc = state.doc && state.project?.docs.find((d) => d.id === state.doc);
+  if (doc) {
+    const opening = wrap.hidden;
+    wrap.hidden = false;
+    document.body.classList.add("no-scroll");
+    $("#drawer").setAttribute("aria-label", "Documento del progetto");
+    $("#drawer").innerHTML = docHtml(doc);
+    markSeen([`doc:${doc.id}`]);
+    if (opening) {
+      wrap.classList.add("opening");
+      requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.remove("opening")));
+      $("#drawer").scrollTop = 0;
+      $("#drawer [data-action=close]")?.focus({ preventScroll: true });
+    }
+    return;
+  }
+  $("#drawer").setAttribute("aria-label", "Dettaglio offerta");
   const j = state.jobs.find((x) => x.id === state.selected);
   if (!j) {
     if (!wrap.hidden) {
@@ -695,8 +783,11 @@ document.addEventListener("click", async (e) => {
     if (["kpi", "todo", "hero-cta"].some((c) => el.classList.contains(c))) $(".list-panel").scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
-  if (a === "open") { state.selected = id; state.rejecting = false; state.reason = ""; renderTable(); renderDrawer(); return; }
-  if (a === "close") { state.selected = null; renderTable(); renderDrawer(); return; }
+  if (a === "open") { state.selected = id; state.rejecting = false; state.reason = ""; markJobSeen(id); renderTable(); renderDrawer(); return; }
+  if (a === "close") { state.selected = null; state.doc = null; if (state.view === "jobs") renderTable(); renderDrawer(); return; }
+  if (a === "view") return setView(el.dataset.view);
+  if (a === "ptab") { state.ptab = el.dataset.ptab; return renderProject(); }
+  if (a === "doc") { state.doc = el.dataset.doc; return renderDrawer(); }
   if (a === "yes") return save(id, { decision: "Y" }, "Fatto: il CV su misura arriva stasera.");
   if (a === "to-yes") {
     const job = state.jobs.find((j) => j.id === id);
@@ -760,6 +851,7 @@ document.addEventListener("input", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.doc) { state.doc = null; renderDrawer(); return; }
   if (e.key === "Escape" && state.selected) { state.selected = null; renderTable(); renderDrawer(); }
   if (e.key === "Enter" && e.target.matches("tr[data-action=open]")) e.target.click();
 });

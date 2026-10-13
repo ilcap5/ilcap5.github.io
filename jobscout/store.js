@@ -4,8 +4,8 @@
 //   load()              -> { jobs: [...], url }
 //   update(id, fields)  -> writes the fields of one job
 
-import { HEADERS } from "./schema.js?v=202610131911";
-import { demoJobs } from "./demo.js?v=202610131911";
+import { HEADERS } from "./schema.js?v=202610132004";
+import { demoJobs, demoProject } from "./demo.js?v=202610132004";
 
 const TAB = "Candidature";
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
@@ -165,6 +165,16 @@ SheetsStore.prototype.setState = async function (key, value) {
   }
 };
 
+// "Progetto" tab (admin only, written by the agent): null when the tab does not exist.
+SheetsStore.prototype.loadProject = async function () {
+  try {
+    const data = await this._fetch(`/values/${encodeURIComponent("Progetto!A:G")}`);
+    return data.values || null;
+  } catch {
+    return null;
+  }
+};
+
 // Rows appended at the bottom of a tab (assistant log, cost log). The tab must exist: the agent creates it.
 SheetsStore.prototype.appendRows = async function (tab, rows) {
   await this._fetch(`/values/${encodeURIComponent(`${tab}!A:I`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
@@ -199,6 +209,7 @@ export class DemoStore {
   }
   get signedIn() { return true; }
   async load() { return { jobs: structuredClone(this.jobs), url: "" }; }
+  async loadProject() { return demoProject(); }
   async update(id, fields) {
     const job = this.jobs.find((j) => j.id === id);
     if (job) Object.assign(job, fields);
@@ -217,7 +228,7 @@ export class DemoStore {
         usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
       };
     }
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610131911");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610132004");
     await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
     return path.endsWith("infer") ? demoInfer() : demoBuild(body);
   }

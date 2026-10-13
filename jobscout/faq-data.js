@@ -104,6 +104,10 @@ export const FAQ = [
         a: "Il riepilogo delle 18 nei giorni di ricerca, l'avviso quando un CV è pronto e un'email al mattino se ci sono novità sulle candidature. Le email arrivano dal tuo indirizzo Gmail a te stesso, con mittente JobScout.ai.",
       },
       {
+        q: "A cosa serve la campanella in alto?",
+        a: "Raccoglie le novità che non hai ancora visto: CV pronti, risposte delle aziende, follow-up da inviare e le offerte nuove dell'ultima ricerca. Il numero dice quante sono da leggere; aprendone una vai all'offerta. Non sostituisce le email: le letture restano salvate nel tuo foglio, quindi valgono anche sul telefono.",
+      },
+      {
         q: "Quanto costa l'uso dell'AI?",
         a: "C'è un tetto mensile di spesa per l'AI, controllato a ogni passaggio: se viene raggiunto, l'analisi si ferma fino al mese successivo invece di superarlo. Prezzi e condizioni sono nei Termini.",
       },

@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202610131911";
+import { addDays, fmtDate, today } from "./schema.js?v=202610132004";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 
@@ -45,4 +45,36 @@ export function demoJobs() {
         ? "Controllo fatti non superato: una frase non torna con il CV originale." : "",
     };
   });
+}
+
+// Sample "Progetto" tab (admin view): invented documents, same shape the agent writes (jobagent/project.py).
+export function demoProject() {
+  const t = today();
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const d0 = iso(t), d1 = iso(addDays(t, -1)), d3 = iso(addDays(t, -3));
+  const sal = (d, verdict, line, risk) => `# SAL del ${fmtDate(new Date(d))} - ${verdict}\n\n${line}\n\n## Attività svolte\n- Bene: ricerca del giorno completata, 18 offerte aggiunte\n- Da migliorare: 3 siti carriere non leggibili\n\n## Attività in corso\n- Contraddittorio sulle offerte con match da 75\n\n## Punti aperti e rischi\n- ${risk}\n\n## Next steps\n- Controllare le offerte con match alto prima di venerdì\n\n## Numeri\n- offerte_aggiunte_7g: 41\n- si_su_decise_pct: 18\n- spesa_mese_usd: 2.4`;
+  const plan = { fasi: [
+    { n: 0, title: "L'agente lavora per te", status: "IN CORSO", detail: "" },
+    { n: 1, title: "Quick wins", status: "FATTO", detail: "" },
+    { n: 2, title: "Prove a vuoto", status: "FATTO", detail: "" },
+    { n: 3, title: "Limiti di ruolo e di zona", status: "IN CORSO", detail: "in osservazione" },
+    { n: 4, title: "Prova con altri profili", status: "IN ATTESA", detail: "dei CV" },
+    { n: 5, title: "Questionario", status: "DA FARE", detail: "" },
+  ], in_corso: ["Prova sul campo dei CV su misura", "Contraddittorio: confronto dei Sì per esito"],
+  punti_aperti: ["La ricerca pubblica a volte restituisce meno offerte"], altro: [] };
+  const runs = [
+    { workflow: "Ricerca offerte", when: "oggi 15:21", at: d0, conclusion: "success", url: "" },
+    { workflow: "Riepilogo 18:00", when: "oggi 18:02", at: d0, conclusion: "success", url: "" },
+    { workflow: "Tracciamento candidature", when: "oggi 08:11", at: d0, conclusion: "success", url: "" },
+    { workflow: "CV su misura", when: "ieri 19:16", at: d1, conclusion: "failure", url: "" },
+    { workflow: "Report dei giri", when: "ieri 23:46", at: d1, conclusion: "success", url: "" },
+  ];
+  return [
+    ["ID", "Tipo", "Data", "Titolo", "Sintesi", "Contenuto", "Link"],
+    ["roadmap", "roadmap", d0, "Roadmap e piano", JSON.stringify(plan), "# Roadmap\n\n## Piano\n\n**Fase 0 - L'agente lavora per te. IN CORSO**\n- Usare l'agente e misurare.\n\n**Fase 5 - Questionario. DA FARE**\n- Modulo a un campione rappresentativo.", ""],
+    [`sal:${d0}`, "sal", d0, `SAL del ${fmtDate(t)} - ok`, "Giornata regolare: ricerca e riepilogo puntuali, un CV in attesa.", sal(d0, "ok", "Giornata regolare: ricerca e riepilogo puntuali, un CV in attesa.", "Un giro CV non riuscito ieri sera: da controllare"), ""],
+    [`sal:${d1}`, "sal", d1, `SAL del ${fmtDate(addDays(t, -1))} - attenzione`, "Un giro CV non riuscito, gli altri regolari.", sal(d1, "attenzione", "Un giro CV non riuscito, gli altri regolari.", "Batch lento la sera"), ""],
+    [`consiglio:${d3}-settimana`, "consiglio", d3, `Consiglio del ${fmtDate(addDays(t, -3))} - Settimana`, "Sintesi. Nessun rischio nuovo; da decidere la soglia del contraddittorio.", `# Consiglio - Settimana\n\n## Riscontro del giudice\n\n**Sintesi.** Nessun rischio nuovo; da decidere la soglia del contraddittorio.\n\n| Tema | Rischioso | Geniale |\n|---|---|---|\n| Soglia 75 | poche offerte rilette | costo basso |\n\n**Da decidere.**\n1. Abbassare la soglia a 70?\n2. Tenere il report giornaliero fino a fine mese?`, ""],
+    ["giri", "giri", d0, "Ultimi giri dell'agente", "", JSON.stringify(runs), ""],
+  ];
 }
