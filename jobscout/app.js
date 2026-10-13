@@ -538,6 +538,7 @@ function actionBox(j) {
   if (j.status === S.CV_READY || j.status === S.CV_CHECK) {
     return `<div class="action-box"><b>${j.status === S.CV_CHECK ? "Ricontrolla il CV prima di inviarlo" : "Il CV è pronto: puoi candidarti"}</b>
       ${j.status === S.CV_CHECK ? `<p class="small red">Una frase non torna con il CV originale: il dettaglio è nelle note qui sotto.</p>` : ""}${reg}
+      <p class="small muted">CV preparato con l'AI a partire dal tuo CV: rileggilo prima di inviarlo, il contenuto resta tuo.</p>
       <div class="row-btns">
         ${j.cv_link ? `<a class="btn btn-quiet" href="${esc(j.cv_link)}" target="_blank" rel="noopener">${icon("file", 17)} Apri il CV</a>` : ""}
         ${j.apply_url || j.job_url ? `<a class="btn btn-quiet" href="${esc(j.apply_url || j.job_url)}" target="_blank" rel="noopener">Vai alla candidatura ${icon("external", 15)}</a>` : ""}

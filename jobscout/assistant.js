@@ -95,8 +95,8 @@ function render() {
   const { esc, icon } = ctx;
   const j = job();
   const hello = j
-    ? `Ciao, sono Lu. Stai guardando ${j.title} di ${j.company}: chiedimi pure, anche se qualcosa non ti torna.`
-    : "Ciao, sono Lu. Ti aiuto a muoverti nella dashboard e a capire le offerte. Se vedi qualcosa che non torna dimmelo, lo faccio sapere all'agente.";
+    ? `Ciao, sono Lu, l'assistente AI di JobScout. Stai guardando ${j.title} di ${j.company}: chiedimi pure, anche se qualcosa non ti torna.`
+    : "Ciao, sono Lu, l'assistente AI di JobScout. Ti aiuto a muoverti nella dashboard e a capire le offerte. Se vedi qualcosa che non torna dimmelo, lo faccio sapere all'agente.";
   const last = chat.messages.length - 1;
   const avatar = `<span class="lu-mini">${luMark(16)}</span>`;
   const msgs = chat.messages.map((m, i) => {
@@ -125,7 +125,7 @@ function render() {
       <textarea id="lu-input" rows="1" placeholder="Scrivi a Lu" aria-label="Messaggio per Lu" ${chat.busy ? "disabled" : ""}></textarea>
       <button class="btn btn-primary btn-icon lu-send" data-asst="send" aria-label="Invia" ${chat.busy ? "disabled" : ""}>${icon("send", 17)}</button>
     </div>
-    <p class="lu-note">Lu può sbagliare: per le scelte importanti controlla l'annuncio. <a href="faq.html">Domande frequenti</a></p>`;
+    <p class="lu-note">Lu è un'intelligenza artificiale e può sbagliare: per le scelte importanti controlla l'annuncio. <a href="faq.html">Domande frequenti</a></p>`;
   const log = $id("lu-log");
   log.scrollTop = log.scrollHeight;
 }
