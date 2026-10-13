@@ -425,7 +425,7 @@ function salary(job) {
 // Quick decision right in the list: yes is one click, no opens the reasons (the agent learns from them).
 function decision(j, compact = false) {
   const tog = decisionToggle(j);
-  if (tog) return tog + (/^n/i.test(j.decision) && j.reject_reason && !compact ? `<small class="dec-reason">${esc(j.reject_reason)}</small>` : "");
+  if (tog) return tog;
   if (compact) return "";
   if (/^y/i.test(j.decision)) return `<span class="dec dec-yes">${icon("check", 15)} Sì</span>`;
   if (/^n/i.test(j.decision)) return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}</span>`;
@@ -445,7 +445,7 @@ function decisionToggle(j, big = false) {
   const who = big ? "" : `: ${esc(j.title)}`;
   return `<div class="decide${big ? " big" : ""}" role="group" aria-label="Ti interessa${who}?">
     <button class="btn-yes" ${yesAction ? `data-action="${yesAction}" data-id="${esc(j.id)}"` : ""} aria-pressed="${yes}" aria-label="Sì${who}">${icon("check", big ? 17 : 15)} Sì</button>
-    <button class="btn-no" ${noAction ? `data-action="${noAction}" data-id="${esc(j.id)}"` : ""} aria-pressed="${no}" aria-label="No${who}">${icon("close", big ? 16 : 14)} No</button></div>`;
+    <button class="btn-no" ${noAction ? `data-action="${noAction}" data-id="${esc(j.id)}"` : ""} aria-pressed="${no}" aria-label="No${who}${j.reject_reason && /^n/i.test(j.decision) ? `, motivo: ${esc(j.reject_reason)}` : ""}"${j.reject_reason && /^n/i.test(j.decision) ? ` title="Motivo: ${esc(j.reject_reason)}"` : ""}>${icon("close", big ? 16 : 14)} No</button></div>`;
 }
 
 // A yes can still become a no until the application is sent (then the status is "Ritirata da me").
@@ -590,7 +590,7 @@ function renderDrawer() {
 // The reasons for a no: same for a first no and for a yes that becomes a no.
 function rejectFields(j) {
   const was = /^y/i.test(j.decision);
-  return `<p class="small muted">${was ? "Cosa è cambiato? Il motivo decide cosa impara l'agente; il CV già pronto resta su Drive." : "Cosa non ti convince? Il motivo decide cosa impara l'agente."}</p>
+  return `<p class="small muted">${was ? `Cosa è cambiato? Il motivo decide cosa impara l'agente${j.cv_link ? "; il CV già pronto resta su Drive" : ""}.` : "Cosa non ti convince? Il motivo decide cosa impara l'agente."}</p>
     <div class="chips pick">${REJECT_REASONS.map((r) => `<button class="chip${state.reason === r ? " on" : ""}" data-action="reason" data-reason="${esc(r)}" aria-pressed="${state.reason === r}">${esc(r)}</button>`).join("")}</div>
     <p class="small muted" id="reject-effect" aria-live="polite">${state.reason ? esc(REJECT_EFFECTS[state.reason] || "") : "Scegli un motivo."}</p>
     <textarea id="f-reject-note" rows="2" aria-label="Nota per l'agente" placeholder="Una riga per l'agente, se vuoi"></textarea>
