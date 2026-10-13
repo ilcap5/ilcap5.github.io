@@ -424,21 +424,28 @@ function salary(job) {
 
 // Quick decision right in the list: yes is one click, no opens the reasons (the agent learns from them).
 function decision(j, compact = false) {
-  if (j.status === S.NEW && !j.decision && j.id) {
-    return `<div class="decide${compact ? " compact" : ""}">
-      <button class="btn-yes" data-action="yes" data-id="${esc(j.id)}" aria-label="Sì, prepara il CV per ${esc(j.title)}">${icon("check", 15)} Sì</button>
-      <button class="btn-no" data-action="quick-no" data-id="${esc(j.id)}" aria-label="No, scarta ${esc(j.title)}">${icon("close", 14)} No</button></div>`;
-  }
+  const tog = decisionToggle(j);
+  if (tog) return tog + (/^n/i.test(j.decision) && j.reject_reason && !compact ? `<small class="dec-reason">${esc(j.reject_reason)}</small>` : "");
   if (compact) return "";
-  if (/^y/i.test(j.decision)) {
-    const change = canSwitchToNo(j) ? `<button class="dec-change" data-action="quick-no" data-id="${esc(j.id)}" aria-label="Cambia in No: ${esc(j.title)}">Cambia in No</button>` : "";
-    return `<span class="dec dec-yes">${icon("check", 15)} Sì${change}</span>`;
-  }
-  if (/^n/i.test(j.decision)) {
-    const change = canSwitchToYes(j) ? `<button class="dec-change dec-to-yes" data-action="to-yes" data-id="${esc(j.id)}" aria-label="Cambia in Sì: ${esc(j.title)}">Cambia in Sì</button>` : "";
-    return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}${change}</span>`;
-  }
+  if (/^y/i.test(j.decision)) return `<span class="dec dec-yes">${icon("check", 15)} Sì</span>`;
+  if (/^n/i.test(j.decision)) return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}</span>`;
   return `<span class="muted">-</span>`;
+}
+
+// Sì / No switch, same in the list and in the detail: the chosen answer is filled (green yes, red no) and a click on
+// the other one changes it. A no always asks for the reason; a yes can change until the application is sent.
+function decisionToggle(j, big = false) {
+  const open = j.status === S.NEW && !j.decision;
+  if (!j.id || !(open || canSwitchToNo(j) || canSwitchToYes(j))) return "";
+  const pending = big && state.rejecting;
+  const yes = /^y/i.test(j.decision) && !pending;
+  const no = /^n/i.test(j.decision) || pending;
+  const yesAction = open ? "yes" : /^n/i.test(j.decision) ? "to-yes" : pending ? "cancel-no" : "";
+  const noAction = no ? "" : big ? "no" : "quick-no";
+  const who = big ? "" : `: ${esc(j.title)}`;
+  return `<div class="decide${big ? " big" : ""}" role="group" aria-label="Ti interessa${who}?">
+    <button class="btn-yes" ${yesAction ? `data-action="${yesAction}" data-id="${esc(j.id)}"` : ""} aria-pressed="${yes}" aria-label="Sì${who}">${icon("check", big ? 17 : 15)} Sì</button>
+    <button class="btn-no" ${noAction ? `data-action="${noAction}" data-id="${esc(j.id)}"` : ""} aria-pressed="${no}" aria-label="No${who}">${icon("close", big ? 16 : 14)} No</button></div>`;
 }
 
 // A yes can still become a no until the application is sent (then the status is "Ritirata da me").
@@ -580,53 +587,48 @@ function renderDrawer() {
   }
 }
 
-// The reasons for a no: same box for a first no and for a yes that becomes a no.
-function rejectBox(j) {
+// The reasons for a no: same for a first no and for a yes that becomes a no.
+function rejectFields(j) {
   const was = /^y/i.test(j.decision);
-  return `<div class="action-box"><b>${was ? "Da Sì a No: cosa è cambiato?" : "Cosa non ti convince?"}</b>
-    <p class="small muted">${was ? "Il motivo decide cosa impara l'agente. Il CV già pronto resta su Drive." : "Il motivo decide cosa impara l'agente."}</p>
+  return `<p class="small muted">${was ? "Cosa è cambiato? Il motivo decide cosa impara l'agente; il CV già pronto resta su Drive." : "Cosa non ti convince? Il motivo decide cosa impara l'agente."}</p>
     <div class="chips pick">${REJECT_REASONS.map((r) => `<button class="chip${state.reason === r ? " on" : ""}" data-action="reason" data-reason="${esc(r)}" aria-pressed="${state.reason === r}">${esc(r)}</button>`).join("")}</div>
     <p class="small muted" id="reject-effect" aria-live="polite">${state.reason ? esc(REJECT_EFFECTS[state.reason] || "") : "Scegli un motivo."}</p>
     <textarea id="f-reject-note" rows="2" aria-label="Nota per l'agente" placeholder="Una riga per l'agente, se vuoi"></textarea>
     <div class="row-btns"><button class="btn btn-primary" data-action="confirm-no" data-id="${esc(j.id)}" ${state.reason ? "" : "disabled"}>${was ? "Cambia in No" : "Scarta l'offerta"}</button>
-    <button class="btn btn-quiet" data-action="cancel-no">Annulla</button></div></div>`;
+    <button class="btn btn-quiet" data-action="cancel-no">Annulla</button></div>`;
 }
 
 function actionBox(j) {
   if (!j.id) return "";
   const reg = /^s[iì]/i.test(j.registration) ? `<p class="small amber">Per candidarti serve un account su ${esc(j.portal || "questo portale")}.</p>` : "";
-  if (state.rejecting && ((j.status === S.NEW && !j.decision) || canSwitchToNo(j))) return rejectBox(j);
-  if (j.status === S.NEW && !j.decision) {
-    return `<div class="action-box"><b>Ti interessa?</b><p class="small muted">Con un sì l'agente prepara il CV su misura stasera, tra le 19 e le 23.</p>
-      <div class="row-btns"><button class="btn btn-primary" data-action="yes" data-id="${esc(j.id)}">${icon("check", 17)} Sì, prepara il CV</button>
-      <button class="btn btn-quiet" data-action="no">No</button></div></div>`;
-  }
-  if (j.status === S.NEW && /^y/i.test(j.decision)) {
-    return `<div class="action-box soft"><b>Il CV è in preparazione</b><p class="small">Arriva stasera tra le 19 e le 23, insieme a un'email.</p>
-      <div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="no">Non mi interessa più</button>
-      <button class="btn btn-quiet btn-sm" data-action="undo" data-id="${esc(j.id)}">Rimetti da valutare</button></div></div>`;
+  const tog = decisionToggle(j, true);
+  let head = "";
+  if (tog) {
+    let body;
+    if (state.rejecting) body = rejectFields(j);
+    else if (j.status === S.NEW && !j.decision) body = `<p class="small muted">Con un sì l'agente prepara il CV su misura stasera, tra le 19 e le 23.</p>`;
+    else if (/^n/i.test(j.decision)) body = `<p class="small muted">${j.reject_reason ? `Scartata: ${esc(j.reject_reason)}. ` : ""}Se ci ripensi, con un sì l'agente prepara il CV su misura stasera e il motivo del no non conta più.</p>`;
+    else if (j.status === S.NEW) body = `<p class="small">Il CV è in preparazione: arriva stasera tra le 19 e le 23, insieme a un'email.</p>
+      <div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="undo" data-id="${esc(j.id)}">Rimetti da valutare</button></div>`;
+    else body = "";
+    head = `<div class="action-box decide-box"><div class="decide-row"><b>Ti interessa?</b>${tog}</div>${body}</div>`;
+    if (state.rejecting || j.status === S.NEW || /^n/i.test(j.decision)) return head;
   }
   if (j.status === S.CV_READY || j.status === S.CV_CHECK) {
-    return `<div class="action-box"><b>${j.status === S.CV_CHECK ? "Ricontrolla il CV prima di inviarlo" : "Il CV è pronto: puoi candidarti"}</b>
+    return head + `<div class="action-box"><b>${j.status === S.CV_CHECK ? "Ricontrolla il CV prima di inviarlo" : "Il CV è pronto: puoi candidarti"}</b>
       ${j.status === S.CV_CHECK ? `<p class="small red">Una frase non torna con il CV originale: il dettaglio è nelle note qui sotto.</p>` : ""}${reg}
       <p class="small muted">CV preparato con l'AI a partire dal tuo CV: rileggilo prima di inviarlo, il contenuto resta tuo.</p>
       <div class="row-btns">
         ${j.cv_link ? `<a class="btn btn-quiet" href="${esc(j.cv_link)}" target="_blank" rel="noopener">${icon("file", 17)} Apri il CV</a>` : ""}
         ${j.apply_url || j.job_url ? `<a class="btn btn-quiet" href="${esc(j.apply_url || j.job_url)}" target="_blank" rel="noopener">Vai alla candidatura ${icon("external", 15)}</a>` : ""}
-        <button class="btn btn-primary" data-action="applied" data-id="${esc(j.id)}">${icon("send", 17)} Ho inviato la candidatura</button></div>
-      ${canSwitchToNo(j) ? `<div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="no">Non mi interessa più</button></div>` : ""}</div>`;
-  }
-  if (canSwitchToYes(j)) {
-    return `<div class="action-box soft"><b>L'hai scartata${j.reject_reason ? `: ${esc(j.reject_reason)}` : ""}</b>
-      <p class="small muted">Se ci ripensi, con un sì l'agente prepara il CV su misura stasera e toglie il motivo del no da quello che ha imparato.</p>
-      <div class="row-btns"><button class="btn btn-primary btn-sm" data-action="to-yes" data-id="${esc(j.id)}">${icon("check", 15)} Cambia in Sì, prepara il CV</button></div></div>`;
+        <button class="btn btn-primary" data-action="applied" data-id="${esc(j.id)}">${icon("send", 17)} Ho inviato la candidatura</button></div></div>`;
   }
   if (j.next_step && !FINAL.has(j.status)) {
     const d = parseDate(j.next_step_date);
-    return `<div class="action-box soft"><b>Prossimo passo: ${esc(j.next_step)}</b>
+    return head + `<div class="action-box soft"><b>Prossimo passo: ${esc(j.next_step)}</b>
       ${d ? `<p class="small ${d < today() ? "red" : "muted"}">${esc(relDate(j.next_step_date))}, ${esc(j.next_step_date)}</p>` : ""}</div>`;
   }
-  return "";
+  return head;
 }
 
 // ================================================================ writes

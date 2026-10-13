@@ -58,11 +58,11 @@ export const FAQ = [
       },
       {
         q: "Ho scartato un'offerta per sbaglio, posso tornare indietro?",
-        a: "Sì: nella scheda Scartate c'è \"Cambia in Sì\" sotto il No, e nel dettaglio dell'offerta \"Cambia in Sì, prepara il CV\". Il CV su misura arriva la sera stessa e l'agente smette di usare il motivo del no. Vale finché l'offerta non è scaduta o chiusa.",
+        a: "Sì: apri l'offerta (scheda Scartate) e nel riquadro \"Ti interessa?\" clicca Sì, oppure clicca Sì direttamente nella riga della lista. Il CV su misura arriva la sera stessa e l'agente smette di usare il motivo del no. Vale finché l'offerta non è scaduta o chiusa.",
       },
       {
         q: "Avevo detto sì, ora non mi interessa più: cosa faccio?",
-        a: "Finché non hai inviato la candidatura, nella lista c'è \"Cambia in No\" sotto il Sì, e nel dettaglio dell'offerta \"Non mi interessa più\". Scegli il motivo come per un no normale: l'agente lo impara e il CV già pronto resta su Drive. Dopo l'invio usa lo stato \"Ritirata da me\".",
+        a: "Finché non hai inviato la candidatura, nel riquadro \"Ti interessa?\" del dettaglio (o nella riga della lista) clicca No: il Sì scelto è verde, il No rosso. Scegli il motivo come per un no normale: l'agente lo impara e il CV già pronto resta su Drive. Dopo l'invio usa lo stato \"Ritirata da me\".",
       },
     ],
   },

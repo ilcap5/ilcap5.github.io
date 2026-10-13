@@ -14,12 +14,12 @@ Lista "Offerte e candidature": ricerca per azienda o ruolo, filtro per tipo di r
 più alto, Data di invio, Prossimo passo). Schede: Tutte, Da valutare, CV pronti, Inviate, Colloqui, Offerte, Chiuse,
 Scartate. Ogni riga mostra il logo dell'azienda (le iniziali se non c'è), ruolo, match colorato e stato; lo stato si cambia anche dal menu nella riga.
 Cliccando una riga si apre il dettaglio dell'offerta a destra:
-- riquadro "Ti interessa?": "Sì, prepara il CV" (il CV su misura arriva la sera stessa tra le 19 e le 23, con
-  un'email) oppure "No" (si sceglie un motivo: ogni motivo spiega sotto cosa impara l'agente; nota facoltativa);
-- dopo il sì: "Rimetti da valutare" annulla finché il CV non è pronto; "Cambia in No" (sotto il Sì nella lista) o "Non mi
-  interessa più" (nel dettaglio) trasforma il sì in un no con motivo, finché la candidatura non è inviata;
-- dopo il no: "Cambia in Sì" (sotto il No nella lista, scheda Scartate) o "Cambia in Sì, prepara il CV" (nel dettaglio)
-  rimette il sì, il CV arriva la sera stessa e il motivo del no non conta più;
+- riquadro "Ti interessa?" in cima al dettaglio, con due pulsanti Sì e No (gli stessi nella colonna "Ti interessa?"
+  della lista): la scelta fatta è piena, verde il Sì e rossa il No; cliccando l'altra si cambia idea. Sì: il CV su
+  misura arriva la sera stessa tra le 19 e le 23, con un'email. No: si sceglie un motivo (ogni motivo spiega sotto cosa
+  impara l'agente; nota facoltativa) e si conferma. Da Sì a No si può finché la candidatura non è inviata (il CV resta
+  su Drive); da No a Sì finché l'offerta è Da valutare o Stand-by (il motivo del no non conta più). Mentre il CV è in
+  preparazione c'è anche "Rimetti da valutare";
 - con il CV pronto: "Apri il CV" (Google Drive, PDF e Word) e "Vai alla candidatura"; la candidatura si invia
   sempre a mano, poi si segna lo stato "Candidata" e la data di invio;
 - "Perché questo match": il dettaglio del punteggio (competenze, requisiti, coerenza del ruolo, esperienza);

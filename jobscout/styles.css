@@ -265,14 +265,17 @@ table.jobs { width: 100%; border-collapse: collapse; }
   font-weight: 600; cursor: pointer; border: 1px solid var(--line-2); background: var(--panel); color: var(--body);
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 140ms var(--ease-out); }
 .decide button:active { transform: scale(.96); }
-.decide .btn-yes { background: var(--brand-soft); border-color: transparent; color: var(--brand-2); }
-.decide .btn-yes:hover { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.decide .btn-yes:hover { background: var(--brand-soft); border-color: transparent; color: var(--brand-2); }
 .decide .btn-no:hover { background: var(--red-bg); border-color: transparent; color: var(--red); }
+.decide .btn-yes[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); cursor: default; }
+.decide .btn-no[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: var(--panel); cursor: default; }
+.decide button[aria-pressed="true"]:active { transform: none; }
+.decide.big button { height: 40px; padding: 0 18px; font-size: 15px; gap: 7px; }
+.decide-box .decide-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.decide-box .decide-row + * { margin-top: 10px; }
+.dec-reason { display: block; font-size: 12.5px; color: var(--muted); margin-top: 4px; }
 .dec { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; }
-.dec-yes { color: var(--brand-2); flex-wrap: wrap; }
-.dec-change { flex-basis: 100%; text-align: left; background: none; border: 0; padding: 4px 0; min-height: 24px; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--muted); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
-.dec-change:hover { color: var(--red); text-decoration-color: currentColor; }
-.dec-to-yes:hover { color: var(--brand-2); }
+.dec-yes { color: var(--brand-2); }
 .dec-no { color: var(--muted); font-weight: 500; flex-direction: column; align-items: flex-start; gap: 0; }
 .dec-no small { font-size: 12.5px; }
 .sub-tag { display: block; font-size: 12.5px; color: var(--muted); margin-top: 4px; padding-left: 2px; }
