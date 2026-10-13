@@ -1,4 +1,4 @@
-import { initAssistant, openAssistant } from "./assistant.js";
+import { initAssistant, openAssistant, showLu } from "./assistant.js";
 import { CONFIG } from "./config.js";
 import { DemoStore, SheetsStore } from "./store.js";
 import {
@@ -31,6 +31,7 @@ const PATHS = {
   send: '<path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/>',
   question: '<circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 0 1 4.4.9c0 1.6-2.2 2-2.2 3.4"/><path d="M12 16.8v.2"/>',
   sheet: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/>',
+  robot: '<rect x="4.5" y="8" width="15" height="11" rx="3.5"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1.2"/><path d="M9.5 12.5v1M14.5 12.5v1M10 16.2h4M2.5 12v3M21.5 12v3"/>',
   chat: '<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 9.5h8M8 12.5h5"/>',
 };
 const icon = (name, size = 18) => `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -54,6 +55,7 @@ function boot() {
 }
 
 function screen(html) {
+  showLu(false);
   $("#app").innerHTML = `<main class="screen"><div class="screen-card">${brand()}${html}</div>
     <nav class="legal" aria-label="Informazioni legali"><a href="faq.html">Domande frequenti</a><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav></main>`;
 }
@@ -162,6 +164,7 @@ function renderSkeleton() {
 }
 
 function renderAll() {
+  showLu(true);
   renderTop();
   renderHero();
   renderKpis();
@@ -176,7 +179,6 @@ function renderTop() {
   const demo = state.store instanceof DemoStore;
   $("#topbar-actions").innerHTML = `
     ${demo ? `<span class="badge">Dati di esempio</span>` : ""}
-    <button class="btn btn-icon" data-action="assistant" title="Assistente" aria-label="Apri l'assistente">${icon("chat")}</button>
     <a class="btn btn-icon" href="faq.html" title="Domande frequenti" aria-label="Domande frequenti">${icon("help")}</a>
     <a class="btn btn-quiet btn-sm" href="profilo.html${demo ? "?demo=1" : ""}">Profilo</a>
     <button class="btn btn-icon" data-action="reload" title="Aggiorna" aria-label="Aggiorna">${icon("refresh")}</button>
@@ -440,7 +442,7 @@ function renderDrawer() {
     <div class="dr-pills">${statusPill(j)}${j.role_fit ? `<span class="pill tone-line">${esc(j.role_fit)}</span>` : ""}
       ${j.priority === "Alta" ? `<span class="pill tone-line strong">Priorità alta</span>` : ""}</div>
     ${actionBox(j)}
-    <p class="small dr-ask"><button class="linkish" data-action="assistant" data-id="${esc(j.id)}">${icon("chat", 15)}Qualcosa non torna su questa offerta? Chiedi all'assistente</button></p>
+    <p class="small dr-ask"><button class="linkish" data-action="assistant" data-id="${esc(j.id)}">${icon("robot", 16)}Dubbi su questa offerta? Chiedi a Lu</button></p>
 
     <section class="dr-sec">
       <div class="score-row"><span class="score-big ${matchTone(j.score)}">${esc(j.score || "-")}</span>
@@ -574,10 +576,7 @@ document.addEventListener("click", async (e) => {
     const m = v.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || v.match(/^([a-zA-Z0-9_-]{30,})$/);
     if (!m) return toast("Incolla il link completo del foglio Google.", "error");
     store_set(SHEET_KEY, m[1]);
-    return initAssistant({
-  getStore: () => state.store, getJobs: () => state.jobs, getSelected: () => state.selected, icon, esc, toast,
-});
-boot();
+    return boot();
   }
   if (a === "change-sheet") { store_set(SHEET_KEY, null); return showSetup(); }
   if (a === "login") {

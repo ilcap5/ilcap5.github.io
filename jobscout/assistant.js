@@ -1,9 +1,11 @@
-// Assistant panel of the dashboard: questions on how JobScout.ai works, help with simple problems, and corrections
-// the agent can learn from. Answers come from the Cloudflare service (POST /v1/chat, Haiku). Every question is logged
-// in the "Assistente" tab of the sheet; a correction is saved only when you press its button:
+// Lu, the assistant of the dashboard: questions on how JobScout.ai works and how to use the dashboard, help with simple
+// problems, and corrections the agent can learn from. It opens from the round button at the bottom right (or from the
+// offer detail). Answers come from the Cloudflare service (POST /v1/chat, Haiku). Every question is logged in the
+// "Assistente" tab of the sheet; a correction is saved only when you press its button:
 //   company category -> Stato "company_overrides_v1", search / CV preference or bug -> Stato "assistant_notes_v1".
 import { CONFIG } from "./config.js";
 import { FAQ } from "./faq-data.js";
+import { GUIDE, JOB_STARTERS, STARTERS } from "./lu-guide.js";
 
 const TIER_LABEL = {
   multinational: "multinazionale", large_company: "grande azienda", tech_scaleup: "scale-up tech",
@@ -23,83 +25,96 @@ const parse = (s, fallback) => { try { const v = JSON.parse(s || "null"); return
 const pad = (n) => String(n).padStart(2, "0");
 const nowStamp = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const todayIso = () => nowStamp().slice(0, 10);
+const $id = (id) => document.getElementById(id);
 
 export function initAssistant(deps) {
   ctx = deps;
-  if (document.getElementById("asst-wrap")) return;
+  if ($id("lu")) return;
   document.body.insertAdjacentHTML("beforeend", `
-    <div class="drawer-wrap asst-wrap" id="asst-wrap" hidden>
-      <div class="drawer-bg" data-asst="close"></div>
-      <section class="drawer asst" id="asst" role="dialog" aria-modal="true" aria-labelledby="asst-title" tabindex="-1"></section>
-    </div>`);
+    <button class="lu-fab" id="lu-fab" data-asst="open" hidden aria-label="Apri Lu, l'assistente" aria-controls="lu" aria-expanded="false"
+      title="Chiedi a Lu">${ctx.icon("robot", 26)}</button>
+    <section class="lu" id="lu" role="dialog" aria-labelledby="lu-title" tabindex="-1" hidden></section>`);
   document.addEventListener("click", onClick);
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && chat.open) close();
-    if (e.key === "Enter" && !e.shiftKey && e.target.id === "asst-input") { e.preventDefault(); send(); }
-  });
+    if (e.key === "Escape" && chat.open && $id("lu").contains(e.target)) { e.stopPropagation(); close(); }
+    if (e.key === "Enter" && !e.shiftKey && e.target.id === "lu-input") { e.preventDefault(); send(); }
+  }, true);
+}
+
+// The round button shows only on the dashboard, not on the login and setup screens.
+export function showLu(visible) {
+  const fab = $id("lu-fab");
+  if (fab) fab.hidden = !visible;
+  if (!visible && chat.open) close();
 }
 
 export function openAssistant(jobId = null) {
-  chat.returnFocus = document.activeElement;
+  if (!chat.open) chat.returnFocus = document.activeElement;
   if (jobId !== chat.jobId) chat.messages = [];
   chat.jobId = jobId;
   chat.open = true;
-  const wrap = document.getElementById("asst-wrap");
-  wrap.hidden = false;
-  wrap.classList.add("opening");
-  requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.remove("opening")));
-  document.body.classList.add("no-scroll");
+  const panel = $id("lu");
+  panel.hidden = false;
+  panel.classList.add("opening");
+  requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.remove("opening")));
+  document.body.classList.add("lu-open");
+  $id("lu-fab").setAttribute("aria-expanded", "true");
   render();
-  document.getElementById("asst-input")?.focus();
+  $id("lu-input")?.focus();
 }
 
 function close() {
   chat.open = false;
-  const wrap = document.getElementById("asst-wrap");
-  wrap.classList.add("closing");
-  setTimeout(() => { wrap.hidden = true; wrap.classList.remove("closing"); }, 180);
-  if (!ctx.getSelected()) document.body.classList.remove("no-scroll");
-  chat.returnFocus?.focus?.({ preventScroll: true });
+  const panel = $id("lu");
+  panel.classList.add("closing");
+  setTimeout(() => { if (!chat.open) { panel.hidden = true; } panel.classList.remove("closing"); }, 160);
+  document.body.classList.remove("lu-open");
+  $id("lu-fab").setAttribute("aria-expanded", "false");
+  const back = chat.returnFocus;
+  (back && document.body.contains(back) ? back : $id("lu-fab"))?.focus?.({ preventScroll: true });
 }
 
 function job() { return ctx.getJobs().find((j) => j.id === chat.jobId) || null; }
 
-function suggestions() {
-  const j = job();
-  if (j) {
-    return [`Perché ${j.company} ha questo match?`, "Questa offerta ha un dato sbagliato", "Cosa succede se dico sì?"];
-  }
-  return ["Quando cerca nuove offerte?", "Come scelgo il motivo quando dico no?", "Voglio segnalare un errore"];
+function chips(list) {
+  const { esc } = ctx;
+  return `<div class="lu-sugg">${list.map((q) => `<button class="lu-chip" data-asst="ask" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>`;
 }
 
 function render() {
   const { esc, icon } = ctx;
   const j = job();
+  const hello = j
+    ? `Ciao, sono Lu. Stai guardando ${j.title} di ${j.company}: chiedimi pure, anche se qualcosa non ti torna.`
+    : "Ciao, sono Lu. Ti aiuto a muoverti nella dashboard e a capire le offerte. Se vedi qualcosa che non torna dimmelo, lo faccio sapere all'agente.";
+  const last = chat.messages.length - 1;
   const msgs = chat.messages.map((m, i) => {
     if (m.role === "user") return `<div class="msg msg-user"><p>${esc(m.content)}</p></div>`;
     const f = m.feedback;
     const canSave = f && f.type !== "none" && !m.saved && SAVE_LABEL[f.type] && (f.type !== "company_tier" || (f.company && f.tier));
+    const follow = i === last && !chat.busy && m.followUps?.length ? chips(m.followUps) : "";
     return `<div class="msg msg-bot"><p>${esc(m.content)}</p>
       ${canSave ? `<button class="btn btn-quiet btn-sm" data-asst="save" data-i="${i}">${esc(SAVE_LABEL[f.type](f))}</button>` : ""}
-      ${m.saved ? `<p class="small muted">Salvato: l'agente ne terrà conto dai prossimi giri.</p>` : ""}</div>`;
+      ${m.saved ? `<p class="small muted">Fatto, l'agente ne terrà conto dalla prossima ricerca.</p>` : ""}</div>${follow}`;
   }).join("");
-  document.getElementById("asst").innerHTML = `
-    <div class="dr-head">
-      <div class="dr-title"><h2 id="asst-title">Assistente</h2>
-        <p>${j ? `Su: ${esc(j.title)}, ${esc(j.company)}` : "Come funziona JobScout.ai, dati che non tornano, errori."}</p></div>
-      <button class="btn btn-icon" data-asst="close" aria-label="Chiudi">${icon("close")}</button>
+  $id("lu").innerHTML = `
+    <header class="lu-head">
+      <span class="lu-avatar" aria-hidden="true">${icon("robot", 22)}</span>
+      <div class="lu-who"><h2 id="lu-title">Lu</h2><p>${j ? `Su: ${esc(j.company)}` : "Assistente di JobScout.ai"}</p></div>
+      <button class="btn btn-icon" data-asst="close" aria-label="Chiudi Lu">${icon("close")}</button>
+    </header>
+    <div class="lu-log" id="lu-log" role="log" aria-live="polite">
+      <div class="msg msg-bot"><p>${esc(hello)}</p></div>
+      ${chat.messages.length ? "" : chips(j ? JOB_STARTERS(j) : STARTERS)}
+      ${msgs}
+      ${chat.busy ? `<div class="msg msg-bot lu-typing" role="status" aria-label="Lu sta scrivendo"><span></span><span></span><span></span></div>` : ""}
     </div>
-    <div class="asst-log" id="asst-log" role="log" aria-live="polite">
-      ${msgs || `<p class="small muted">Chiedi pure: rispondo sulle funzioni dell'app e sui dati che vedi. Se qualcosa non torna, posso salvare la correzione per le prossime ricerche.</p>
-        <div class="asst-sugg">${suggestions().map((s) => `<button class="btn btn-quiet btn-sm" data-asst="ask" data-q="${esc(s)}">${esc(s)}</button>`).join("")}</div>`}
-      ${chat.busy ? `<div class="msg msg-bot"><p class="muted">Sto scrivendo...</p></div>` : ""}
+    <div class="lu-form">
+      <textarea id="lu-input" rows="1" placeholder="Scrivi a Lu" aria-label="Messaggio per Lu" ${chat.busy ? "disabled" : ""}></textarea>
+      <button class="btn btn-primary btn-icon lu-send" data-asst="send" aria-label="Invia" ${chat.busy ? "disabled" : ""}>${icon("send", 17)}</button>
     </div>
-    <div class="asst-form">
-      <textarea id="asst-input" rows="2" placeholder="Scrivi una domanda o una segnalazione" aria-label="Messaggio per l'assistente" ${chat.busy ? "disabled" : ""}></textarea>
-      <button class="btn btn-primary" data-asst="send" ${chat.busy ? "disabled" : ""}>${icon("send", 16)}<span>Invia</span></button>
-    </div>
-    <p class="small muted asst-note">Le domande restano nel tuo foglio Google, scheda "Assistente". Le risposte sono generate dall'AI: per le scelte importanti controlla i dati dell'offerta.</p>`;
-  const log = document.getElementById("asst-log");
+    <p class="lu-note">Lu può sbagliare: per le scelte importanti controlla l'annuncio. <a href="faq.html">Domande frequenti</a></p>`;
+  const log = $id("lu-log");
   log.scrollTop = log.scrollHeight;
 }
 
@@ -119,7 +134,7 @@ function context() {
 }
 
 async function send(text) {
-  const input = document.getElementById("asst-input");
+  const input = $id("lu-input");
   const content = (text ?? input?.value ?? "").trim();
   if (!content || chat.busy) return;
   chat.messages.push({ role: "user", content });
@@ -131,15 +146,17 @@ async function send(text) {
       messages: chat.messages.map((m) => ({ role: m.role, content: m.content })),
       context: context(),
       faq: FAQ.flatMap((g) => g.items),
+      guide: GUIDE,
     });
-    chat.messages.push({ role: "assistant", content: res.answer || "Non ho una risposta.", feedback: res.feedback, kind: res.kind });
+    const followUps = (Array.isArray(res.follow_ups) ? res.follow_ups : []).map(String).filter(Boolean).slice(0, 3);
+    chat.messages.push({ role: "assistant", content: res.answer || "Qui non so aiutarti, scusa.", feedback: res.feedback, kind: res.kind, followUps });
     log(store, content, res);
   } catch (e) {
-    chat.messages.push({ role: "assistant", content: `Non riesco a rispondere ora (${e.message}). Riprova tra poco.` });
+    chat.messages.push({ role: "assistant", content: `Non riesco a risponderti adesso (${e.message}). Riprova tra un attimo.` });
   } finally {
     chat.busy = false;
     render();
-    document.getElementById("asst-input")?.focus();
+    $id("lu-input")?.focus();
   }
 }
 
@@ -184,7 +201,8 @@ function onClick(e) {
   const el = e.target.closest("[data-asst]");
   if (!el) return;
   const a = el.dataset.asst;
-  if (a === "close") close();
+  if (a === "open") chat.open ? close() : openAssistant(ctx.getSelected() || null);
+  else if (a === "close") close();
   else if (a === "send") send();
   else if (a === "ask") send(el.dataset.q);
   else if (a === "save") save(Number(el.dataset.i));

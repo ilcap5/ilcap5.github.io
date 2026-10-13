@@ -210,8 +210,9 @@ export class DemoStore {
     if (path === "/v1/chat") {
       await new Promise((r) => setTimeout(r, 900));
       return {
-        answer: "Questa è la prova con dati di esempio: l'assistente vero risponde dopo l'accesso con Google. Puoi chiedere come funziona una funzione, segnalare un dato che non torna o un errore.",
+        answer: "Qui sei nella prova con dati di esempio, quindi ti rispondo solo con questo messaggio. Dopo l'accesso con Google ti rispondo davvero: su come usare la dashboard, sulle offerte e su quello che non ti torna.",
         kind: "domanda", feedback: { type: "none", company: "", tier: "", note: "" }, faq_topic: "prova",
+        follow_ups: ["Come dico sì a un'offerta?", "Dove trovo i CV pronti?"],
         usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
       };
     }
