@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202610132004";
+import { addDays, fmtDate, today } from "./schema.js?v=202610132014";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 
@@ -75,6 +75,27 @@ export function demoProject() {
     [`sal:${d0}`, "sal", d0, `SAL del ${fmtDate(t)} - ok`, "Giornata regolare: ricerca e riepilogo puntuali, un CV in attesa.", sal(d0, "ok", "Giornata regolare: ricerca e riepilogo puntuali, un CV in attesa.", "Un giro CV non riuscito ieri sera: da controllare"), ""],
     [`sal:${d1}`, "sal", d1, `SAL del ${fmtDate(addDays(t, -1))} - attenzione`, "Un giro CV non riuscito, gli altri regolari.", sal(d1, "attenzione", "Un giro CV non riuscito, gli altri regolari.", "Batch lento la sera"), ""],
     [`consiglio:${d3}-settimana`, "consiglio", d3, `Consiglio del ${fmtDate(addDays(t, -3))} - Settimana`, "Sintesi. Nessun rischio nuovo; da decidere la soglia del contraddittorio.", `# Consiglio - Settimana\n\n## Riscontro del giudice\n\n**Sintesi.** Nessun rischio nuovo; da decidere la soglia del contraddittorio.\n\n| Tema | Rischioso | Geniale |\n|---|---|---|\n| Soglia 75 | poche offerte rilette | costo basso |\n\n**Da decidere.**\n1. Abbassare la soglia a 70?\n2. Tenere il report giornaliero fino a fine mese?`, ""],
+    ["budget", "budget", d0, "Budget API", JSON.stringify({ monthly_usd: 10, alert_at: 0.8 }), "", ""],
     ["giri", "giri", d0, "Ultimi giri dell'agente", "", JSON.stringify(runs), ""],
   ];
+}
+
+// Sample "Costi" rows for the spend chart: invented amounts, the shape the agent writes.
+export function demoCosts() {
+  const t = today();
+  const rows = [];
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  for (let day = 1; day <= t.getDate(); day++) {
+    const d = new Date(t.getFullYear(), t.getMonth(), day);
+    const wd = d.getDay();
+    if ([1, 3, 5].includes(wd)) rows.push([iso(d), "analisi offerte", "claude-sonnet-5-5", 0, 0, 0, 0, "sì", 0.18 + (day % 3) * 0.04]);
+    if ([1, 3, 5].includes(wd)) rows.push([iso(d), "contraddittorio offerte", "claude-sonnet-5-5", 0, 0, 0, 0, "sì", 0.03]);
+    if (wd >= 1 && wd <= 5) {
+      rows.push([iso(d), "classifica email", "claude-haiku-4-5", 0, 0, 0, 0, "no", 0.01]);
+      rows.push([iso(d), "report giornaliero", "claude-sonnet-5-5", 0, 0, 0, 0, "no", 0.03]);
+      if (day % 2) rows.push([iso(d), "CV su misura", "claude-opus-5-5", 0, 0, 0, 0, "sì", 0.09]);
+    }
+    if (day % 4 === 0) rows.push([iso(d), "assistente", "claude-haiku-4-5", 0, 0, 0, 0, "no", 0.004]);
+  }
+  return rows;
 }

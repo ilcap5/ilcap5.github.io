@@ -1,9 +1,9 @@
 // Profile onboarding: CV first, then the questions a good headhunter would ask, then the search profile the agent uses.
 // One topic per screen, everything pre-filled from the CV where possible, a draft kept in this browser.
 
-import { CONFIG } from "./config.js?v=202610132004";
-import { accountButton, initAccount } from "./account.js?v=202610132004";
-import { DemoStore, SheetsStore } from "./store.js?v=202610132004";
+import { CONFIG } from "./config.js?v=202610132014";
+import { accountButton, initAccount } from "./account.js?v=202610132014";
+import { DemoStore, SheetsStore } from "./store.js?v=202610132014";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -112,7 +112,7 @@ async function boot() {
   if (S.demo) {
     S.store = new DemoStore();
     // A sample saved profile, so the account menu's "Vedi il tuo profilo" works in the demo too.
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610132004");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610132014");
     const f = demoInfer().facts;
     S.saved = { saved_at: new Date().toISOString(), facts: f, search: demoBuild(),
       answers: { ...blankAnswers(), cities: [{ name: "Milano" }], salary_min: "38", roles: [{ title: "Operations Analyst", priority: "core" }] } };

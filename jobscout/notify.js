@@ -3,7 +3,7 @@
 // Jobs: CV ready, replies from companies, follow-ups due, new offers of the last search. Admin only (scheda Progetto):
 // new SAL, council reports, failed runs.
 
-import { RESPONDED, S, daysBetween, parseDate, shortDate, today } from "./schema.js?v=202610132004";
+import { RESPONDED, S, daysBetween, parseDate, shortDate, today } from "./schema.js?v=202610132014";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const svg = (p, size = 18) => `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;

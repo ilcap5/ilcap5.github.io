@@ -10,7 +10,8 @@ cliccandone una si apre l'offerta); la freccia circolare aggiorna i dati; l'icon
 (oggi il servizio è gratuito), "Apri il foglio Google", il tema (Sistema, Chiaro, Scuro), "Domande frequenti",
 "Privacy e termini", "Cambia account" ed "Esci".
 Solo per il proprietario dell'agente (amministratore) c'è in alto a sinistra la scelta "Candidature | Progetto": la vista
-Progetto ha le schede Panoramica (piano a fasi, ultimi giri dell'agente, punti aperti, attività in corso, ultimi
+Progetto ha le schede Panoramica (spesa API del mese con grafico, proiezione a fine mese, confronto col mese scorso e
+ripartizione per attività; piano a fasi, ultimi giri dell'agente, punti aperti, attività in corso, ultimi
 documenti), SAL (report giornalieri), Consiglio (verbali del sabato) e Roadmap; i documenti nuovi hanno un punto verde
 e arrivano anche nella campanella.
 Nella profilazione la distanza massima dal centro della città si sceglie con una barra scorrevole, da 5 a 100 km.

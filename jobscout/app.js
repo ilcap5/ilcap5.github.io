@@ -1,14 +1,14 @@
-import { accountButton, initAccount } from "./account.js?v=202610132004";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610132004";
-import { CONFIG } from "./config.js?v=202610132004";
-import { DemoStore, SheetsStore } from "./store.js?v=202610132004";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610132004";
-import { docHtml, parseProject, projectHtml } from "./project.js?v=202610132004";
+import { accountButton, initAccount } from "./account.js?v=202610132014";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610132014";
+import { CONFIG } from "./config.js?v=202610132014";
+import { DemoStore, SheetsStore } from "./store.js?v=202610132014";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610132014";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610132014";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610132004";
+} from "./schema.js?v=202610132014";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -262,6 +262,21 @@ function renderProject() {
   $("#view-project").hidden = false;
   $("#view-project").innerHTML = projectHtml(state.project, state.ptab, (docId) =>
     notifications().some((n) => n.id === `doc:${docId}`) && !state.seen.has(`doc:${docId}`));
+  renderSpend();
+}
+
+// Spend chart of the overview: the "Costi" tab is read when the project view is first opened.
+async function renderSpend() {
+  const box = $("#spend");
+  if (!box) return;
+  if (!state.costs) {
+    box.innerHTML = `<div class="panel-h"><h2>Spesa API</h2></div><div class="sk sk-line"></div>`;
+    state.costs = await state.store.loadCosts().catch(() => []);
+    if (!$("#spend")) return;
+  }
+  const data = spendData(state.costs, state.project?.budget);
+  $("#spend").innerHTML = spendHtml(data);
+  drawSpend($("#sp-chart"), data);
 }
 
 function renderHero() {
@@ -773,7 +788,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if (a === "logout") { state.store.signOut(); return showLogin(state.store); }
-  if (a === "reload") return reload();
+  if (a === "reload") { state.costs = null; return reload(); }
   if (a === "assistant") return openAssistant(id || null);
   if (a === "clear-filters") { state.q = ""; state.fit = ""; renderFilters(); renderTable(); return; }
   if (a === "tab") {
@@ -858,7 +873,11 @@ document.addEventListener("keydown", (e) => {
 
 
 // Back on the tab after a while: fresh data.
-window.addEventListener("resize", () => placeTabIndicator());
+let spendTimer = null;
+window.addEventListener("resize", () => {
+  placeTabIndicator();
+  if (state.view === "project" && $("#spend")) { clearTimeout(spendTimer); spendTimer = setTimeout(renderSpend, 120); }
+});
 document.addEventListener("scroll", (e) => { if (e.target.id === "tabs") placeTabIndicator(); }, true);
 document.fonts?.ready.then(() => placeTabIndicator());
 

@@ -4,8 +4,8 @@
 //   load()              -> { jobs: [...], url }
 //   update(id, fields)  -> writes the fields of one job
 
-import { HEADERS } from "./schema.js?v=202610132004";
-import { demoJobs, demoProject } from "./demo.js?v=202610132004";
+import { HEADERS } from "./schema.js?v=202610132014";
+import { demoCosts, demoJobs, demoProject } from "./demo.js?v=202610132014";
 
 const TAB = "Candidature";
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
@@ -175,6 +175,16 @@ SheetsStore.prototype.loadProject = async function () {
   }
 };
 
+// "Costi" tab (one row per AI call: Data, Attività, Modello, ..., USD), for the spend chart of the admin view.
+SheetsStore.prototype.loadCosts = async function () {
+  try {
+    const data = await this._fetch(`/values/${encodeURIComponent("Costi!A2:I")}?valueRenderOption=UNFORMATTED_VALUE`);
+    return data.values || [];
+  } catch {
+    return [];
+  }
+};
+
 // Rows appended at the bottom of a tab (assistant log, cost log). The tab must exist: the agent creates it.
 SheetsStore.prototype.appendRows = async function (tab, rows) {
   await this._fetch(`/values/${encodeURIComponent(`${tab}!A:I`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
@@ -210,6 +220,7 @@ export class DemoStore {
   get signedIn() { return true; }
   async load() { return { jobs: structuredClone(this.jobs), url: "" }; }
   async loadProject() { return demoProject(); }
+  async loadCosts() { return demoCosts(); }
   async update(id, fields) {
     const job = this.jobs.find((j) => j.id === id);
     if (job) Object.assign(job, fields);
@@ -228,7 +239,7 @@ export class DemoStore {
         usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
       };
     }
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610132004");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610132014");
     await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
     return path.endsWith("infer") ? demoInfer() : demoBuild(body);
   }
