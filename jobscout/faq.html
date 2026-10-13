@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Domande frequenti - JobScout.ai</title>
+  <meta name="description" content="Risposte alle domande più comuni su JobScout.ai: offerte, match, CV su misura, candidature e dati.">
+  <meta name="theme-color" content="#0B3B2E">
+  <link rel="icon" href="assets/mark-64.png" type="image/png">
+  <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" href="./" aria-label="Torna alla dashboard"><img class="brand-mark" src="assets/mark-64.png" width="28" height="28" alt="">
+        <span class="brand-name">JobScout<span>.ai</span></span></a>
+      <div class="topbar-actions"><a class="btn btn-quiet btn-sm" href="./">Dashboard</a></div>
+    </div>
+  </header>
+  <main class="page faq-page">
+    <h1>Domande frequenti</h1>
+    <p class="muted faq-intro" id="faq-intro">Come funziona l'agente, come leggere le offerte e cosa fare quando qualcosa non torna.</p>
+    <label class="search faq-search">
+      <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="faq-q" type="search" placeholder="Cerca una domanda" aria-label="Cerca una domanda">
+    </label>
+    <div id="faq"></div>
+    <p class="muted faq-empty" id="faq-empty" hidden>Nessuna domanda trovata. Prova con un'altra parola.</p>
+    <nav class="legal" aria-label="Informazioni legali"><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav>
+  </main>
+  <noscript>Per leggere le domande frequenti serve JavaScript.</noscript>
+  <script type="module" src="faq.js"></script>
+</body>
+</html>

@@ -21,6 +21,7 @@ const state = {
 const PATHS = {
   search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
   refresh: '<path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.85.85c0 1.7-2.45 2.2-2.45 3.6"/><path d="M12 17h.01"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
   external: '<path d="M14 5h5v5"/><path d="M19 5l-8 8"/><path d="M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/>',
   chevron: '<path d="m9 6 6 6-6 6"/>',
@@ -52,7 +53,7 @@ function boot() {
 
 function screen(html) {
   $("#app").innerHTML = `<main class="screen"><div class="screen-card">${brand()}${html}</div>
-    <nav class="legal" aria-label="Informazioni legali"><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav></main>`;
+    <nav class="legal" aria-label="Informazioni legali"><a href="faq.html">Domande frequenti</a><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav></main>`;
 }
 
 function brand() {
@@ -143,7 +144,7 @@ function shell() {
       <div id="table"></div>
     </section>
     <p class="foot" id="foot"></p>
-    <nav class="legal" aria-label="Informazioni legali"><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav>
+    <nav class="legal" aria-label="Informazioni legali"><a href="faq.html">Domande frequenti</a><a href="../privacy.html">Privacy</a><a href="../cookie.html">Cookie</a><a href="../termini.html">Termini</a></nav>
   </main>
   <div class="drawer-wrap" id="drawer-wrap" hidden>
     <div class="drawer-bg" data-action="close"></div>
@@ -173,6 +174,7 @@ function renderTop() {
   const demo = state.store instanceof DemoStore;
   $("#topbar-actions").innerHTML = `
     ${demo ? `<span class="badge">Dati di esempio</span>` : ""}
+    <a class="btn btn-icon" href="faq.html" title="Domande frequenti" aria-label="Domande frequenti">${icon("help")}</a>
     <a class="btn btn-quiet btn-sm" href="profilo.html${demo ? "?demo=1" : ""}">Profilo</a>
     <button class="btn btn-icon" data-action="reload" title="Aggiorna" aria-label="Aggiorna">${icon("refresh")}</button>
     ${state.url ? `<a class="btn btn-icon" href="${esc(state.url)}" target="_blank" rel="noopener" title="Apri il foglio" aria-label="Apri il foglio">${icon("sheet")}</a>` : ""}
