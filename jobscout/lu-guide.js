@@ -18,6 +18,8 @@ Cliccando una riga si apre il dettaglio dell'offerta a destra:
   un'email) oppure "No" (si sceglie un motivo: ogni motivo spiega sotto cosa impara l'agente; nota facoltativa);
 - dopo il sì: "Rimetti da valutare" annulla finché il CV non è pronto; "Cambia in No" (sotto il Sì nella lista) o "Non mi
   interessa più" (nel dettaglio) trasforma il sì in un no con motivo, finché la candidatura non è inviata;
+- dopo il no: "Cambia in Sì" (sotto il No nella lista, scheda Scartate) o "Cambia in Sì, prepara il CV" (nel dettaglio)
+  rimette il sì, il CV arriva la sera stessa e il motivo del no non conta più;
 - con il CV pronto: "Apri il CV" (Google Drive, PDF e Word) e "Vai alla candidatura"; la candidatura si invia
   sempre a mano, poi si segna lo stato "Candidata" e la data di invio;
 - "Perché questo match": il dettaglio del punteggio (competenze, requisiti, coerenza del ruolo, esperienza);

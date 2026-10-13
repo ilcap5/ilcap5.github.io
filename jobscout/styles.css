@@ -272,6 +272,7 @@ table.jobs { width: 100%; border-collapse: collapse; }
 .dec-yes { color: var(--brand-2); flex-wrap: wrap; }
 .dec-change { flex-basis: 100%; text-align: left; background: none; border: 0; padding: 4px 0; min-height: 24px; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--muted); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
 .dec-change:hover { color: var(--red); text-decoration-color: currentColor; }
+.dec-to-yes:hover { color: var(--brand-2); }
 .dec-no { color: var(--muted); font-weight: 500; flex-direction: column; align-items: flex-start; gap: 0; }
 .dec-no small { font-size: 12.5px; }
 .sub-tag { display: block; font-size: 12.5px; color: var(--muted); margin-top: 4px; padding-left: 2px; }

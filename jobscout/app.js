@@ -434,13 +434,21 @@ function decision(j, compact = false) {
     const change = canSwitchToNo(j) ? `<button class="dec-change" data-action="quick-no" data-id="${esc(j.id)}" aria-label="Cambia in No: ${esc(j.title)}">Cambia in No</button>` : "";
     return `<span class="dec dec-yes">${icon("check", 15)} Sì${change}</span>`;
   }
-  if (/^n/i.test(j.decision)) return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}</span>`;
+  if (/^n/i.test(j.decision)) {
+    const change = canSwitchToYes(j) ? `<button class="dec-change dec-to-yes" data-action="to-yes" data-id="${esc(j.id)}" aria-label="Cambia in Sì: ${esc(j.title)}">Cambia in Sì</button>` : "";
+    return `<span class="dec dec-no">No${j.reject_reason ? `<small>${esc(j.reject_reason)}</small>` : ""}${change}</span>`;
+  }
   return `<span class="muted">-</span>`;
 }
 
 // A yes can still become a no until the application is sent (then the status is "Ritirata da me").
 function canSwitchToNo(j) {
   return Boolean(j.id) && /^y/i.test(j.decision) && [S.NEW, S.CV_READY, S.CV_CHECK].includes(j.status);
+}
+
+// A no can become a yes while the offer is still open (not expired or closed).
+function canSwitchToYes(j) {
+  return Boolean(j.id) && /^n/i.test(j.decision) && [S.NEW, S.STANDBY].includes(j.status);
 }
 
 function emptyState(title, text, action = "") {
@@ -608,6 +616,11 @@ function actionBox(j) {
         <button class="btn btn-primary" data-action="applied" data-id="${esc(j.id)}">${icon("send", 17)} Ho inviato la candidatura</button></div>
       ${canSwitchToNo(j) ? `<div class="row-btns"><button class="btn btn-quiet btn-sm" data-action="no">Non mi interessa più</button></div>` : ""}</div>`;
   }
+  if (canSwitchToYes(j)) {
+    return `<div class="action-box soft"><b>L'hai scartata${j.reject_reason ? `: ${esc(j.reject_reason)}` : ""}</b>
+      <p class="small muted">Se ci ripensi, con un sì l'agente prepara il CV su misura stasera e toglie il motivo del no da quello che ha imparato.</p>
+      <div class="row-btns"><button class="btn btn-primary btn-sm" data-action="to-yes" data-id="${esc(j.id)}">${icon("check", 15)} Cambia in Sì, prepara il CV</button></div></div>`;
+  }
   if (j.next_step && !FINAL.has(j.status)) {
     const d = parseDate(j.next_step_date);
     return `<div class="action-box soft"><b>Prossimo passo: ${esc(j.next_step)}</b>
@@ -683,6 +696,12 @@ document.addEventListener("click", async (e) => {
   if (a === "open") { state.selected = id; state.rejecting = false; state.reason = ""; renderTable(); renderDrawer(); return; }
   if (a === "close") { state.selected = null; renderTable(); renderDrawer(); return; }
   if (a === "yes") return save(id, { decision: "Y" }, "Fatto: il CV su misura arriva stasera.");
+  if (a === "to-yes") {
+    const job = state.jobs.find((j) => j.id === id);
+    const fields = { decision: "Y", reject_reason: "", status: S.NEW,
+      notes: [job.notes, `Cambiata da No a Sì il ${fmtDate(today())}.`].filter(Boolean).join(" ") };
+    return save(id, fields, "Fatto: ora è un Sì. Il CV su misura arriva stasera.");
+  }
   if (a === "undo") return save(id, { decision: "" }, "Va bene, l'offerta torna da valutare.");
   if (a === "no") { state.rejecting = true; return renderDrawer(); }
   if (a === "quick-no") { state.selected = id; state.rejecting = true; state.reason = ""; renderTable(); renderDrawer(); return; }

@@ -58,7 +58,7 @@ export const FAQ = [
       },
       {
         q: "Ho scartato un'offerta per sbaglio, posso tornare indietro?",
-        a: "Sì: nel foglio Google cambia la colonna \"Candidarsi (Y/N)\" e, se serve, \"Motivo N\". Al giro successivo l'agente ne tiene conto.",
+        a: "Sì: nella scheda Scartate c'è \"Cambia in Sì\" sotto il No, e nel dettaglio dell'offerta \"Cambia in Sì, prepara il CV\". Il CV su misura arriva la sera stessa e l'agente smette di usare il motivo del no. Vale finché l'offerta non è scaduta o chiusa.",
       },
       {
         q: "Avevo detto sì, ora non mi interessa più: cosa faccio?",
