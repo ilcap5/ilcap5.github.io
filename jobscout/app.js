@@ -1,12 +1,12 @@
-import { accountButton, initAccount } from "./account.js";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js";
-import { CONFIG } from "./config.js";
-import { DemoStore, SheetsStore } from "./store.js";
+import { accountButton, initAccount } from "./account.js?v=202610131911";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610131911";
+import { CONFIG } from "./config.js?v=202610131911";
+import { DemoStore, SheetsStore } from "./store.js?v=202610131911";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js";
+} from "./schema.js?v=202610131911";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

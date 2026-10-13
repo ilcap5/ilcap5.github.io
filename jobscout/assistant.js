@@ -3,9 +3,9 @@
 // offer detail). Answers come from the Cloudflare service (POST /v1/chat, Haiku). Every question is logged in the
 // "Assistente" tab of the sheet; a correction is saved only when you press its button:
 //   company category -> Stato "company_overrides_v1", search / CV preference or bug -> Stato "assistant_notes_v1".
-import { CONFIG } from "./config.js";
-import { FAQ } from "./faq-data.js";
-import { GUIDE, JOB_STARTERS, STARTERS } from "./lu-guide.js";
+import { CONFIG } from "./config.js?v=202610131911";
+import { FAQ } from "./faq-data.js?v=202610131911";
+import { GUIDE, JOB_STARTERS, STARTERS } from "./lu-guide.js?v=202610131911";
 
 const TIER_LABEL = {
   multinational: "multinazionale", large_company: "grande azienda", tech_scaleup: "scale-up tech",
