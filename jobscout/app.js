@@ -1,3 +1,4 @@
+import { accountButton, initAccount } from "./account.js";
 import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js";
 import { CONFIG } from "./config.js";
 import { DemoStore, SheetsStore } from "./store.js";
@@ -178,11 +179,16 @@ function renderTop() {
   const demo = state.store instanceof DemoStore;
   $("#topbar-actions").innerHTML = `
     ${demo ? `<span class="badge">Dati di esempio</span>` : ""}
-    <a class="btn btn-icon" href="faq.html" title="Domande frequenti" aria-label="Domande frequenti">${icon("help")}</a>
-    <a class="btn btn-quiet btn-sm" href="profilo.html${demo ? "?demo=1" : ""}">Profilo</a>
     <button class="btn btn-icon" data-action="reload" title="Aggiorna" aria-label="Aggiorna">${icon("refresh")}</button>
-    ${state.url ? `<a class="btn btn-icon" href="${esc(state.url)}" target="_blank" rel="noopener" title="Apri il foglio" aria-label="Apri il foglio">${icon("sheet")}</a>` : ""}
-    <button class="btn btn-quiet btn-sm" data-action="${demo ? "exit-demo" : "logout"}">${demo ? "Esci dalla prova" : "Esci"}</button>`;
+    ${accountButton()}`;
+  initAccount({
+    store: state.store, demo, sheetUrl: state.url, here: "dashboard",
+    onExitDemo: () => { location.href = location.pathname; },
+    onSignOut: () => { state.store.signOut(); showLogin(state.store); },
+    onSwitch: async () => {
+      try { await state.store.signIn("select_account"); await start(state.store); } catch (err) { toast(err.message, "error"); }
+    },
+  });
 }
 
 function renderHero() {

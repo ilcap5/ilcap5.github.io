@@ -145,3 +145,37 @@
 .pf-consent { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 4px; font-size: 14px; line-height: 1.5; color: var(--body); cursor: pointer; }
 .pf-consent input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--brand-2); }
 .pf-consent a { color: var(--brand-2); }
+
+/* distance slider: filled track up to the value, big readable number, marks under the track */
+.pf-range { padding: 16px 18px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.pf-range-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.pf-range-top .pf-help { margin: 0; }
+.pf-range output { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pf-range output b { font-size: 30px; font-weight: 640; letter-spacing: -.03em; color: var(--text); margin-right: 2px; }
+.pf-range input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+.pf-range input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px;
+  background: linear-gradient(to right, var(--brand-2) var(--p), var(--line-2) var(--p)); }
+.pf-range input[type=range]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--line-2); }
+.pf-range input[type=range]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--brand-2); }
+.pf-range input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -9px; border-radius: 50%;
+  background: var(--panel); border: 2px solid var(--brand-2); box-shadow: 0 2px 8px -2px rgb(10 30 22 / .35); transition: transform 140ms var(--ease-out); }
+.pf-range input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--panel); border: 2px solid var(--brand-2);
+  box-shadow: 0 2px 8px -2px rgb(10 30 22 / .35); }
+.pf-range input[type=range]:active::-webkit-slider-thumb { transform: scale(1.12); }
+.pf-range input[type=range]:focus-visible { outline: 0; }
+.pf-range input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
+.pf-range input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
+.pf-range-marks { position: relative; height: 18px; margin: 2px 12px 0; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pf-range-marks span { position: absolute; left: var(--x); transform: translateX(-50%); white-space: nowrap; }
+.pf-range-marks span:first-child { transform: none; left: -10px; } .pf-range-marks span:last-child { transform: none; left: auto; right: -10px; }
+#travel-out b { font-size: 22px; }
+
+/* same heading scale as the dashboard */
+.pf-main h1 { font-size: 32px; font-weight: 640; letter-spacing: -.032em; }
+.pf-block { margin-top: 28px; }
+.pf-block h2 { font-size: 16.5px; font-weight: 620; letter-spacing: -.012em; }
+.pf-chip.rank::after { color: var(--on-brand); background: var(--brand-2); }
+@media (max-width: 640px) { .pf-main h1 { font-size: 26px; } }
+.pf-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pf-two .btn { height: 46px; }
+@media (max-width: 640px) { .pf-two { grid-template-columns: 1fr; } }

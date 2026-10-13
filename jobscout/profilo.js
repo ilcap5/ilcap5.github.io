@@ -2,6 +2,7 @@
 // One topic per screen, everything pre-filled from the CV where possible, a draft kept in this browser.
 
 import { CONFIG } from "./config.js";
+import { accountButton, initAccount } from "./account.js";
 import { DemoStore, SheetsStore } from "./store.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -32,7 +33,7 @@ const MIXES = [
 ];
 const CITIES = ["Milano", "Roma", "Torino", "Bologna", "Firenze", "Padova", "Londra", "Dublino", "Madrid", "Barcellona",
   "Parigi", "Amsterdam", "Berlino", "Monaco di Baviera", "Zurigo", "Lussemburgo"];
-const RADIUS = [10, 20, 35, 50];
+const RADIUS = { min: 5, max: 100, step: 5, marks: [5, 25, 50, 75, 100] };
 const MODES = ["In sede", "Ibrido", "Da remoto"];
 const RELOCATION = [{ id: "no", t: "No" }, { id: "italia", t: "In Italia" }, { id: "estero", t: "Anche all'estero" }];
 const TRAVEL = [{ id: "0", t: "Nessuna" }, { id: "20", t: "Fino al 20%" }, { id: "50", t: "Fino al 50%" }, { id: "100", t: "Anche di più" }];
@@ -108,7 +109,17 @@ function loadDraft() {
 async function boot() {
   const params = new URLSearchParams(location.search);
   S.demo = params.has("demo");
-  if (S.demo) { S.store = new DemoStore(); return render(); }
+  if (S.demo) {
+    S.store = new DemoStore();
+    // A sample saved profile, so the account menu's "Vedi il tuo profilo" works in the demo too.
+    const { demoInfer, demoBuild } = await import("./demo-profile.js");
+    const f = demoInfer().facts;
+    S.saved = { saved_at: new Date().toISOString(), facts: f, search: demoBuild(),
+      answers: { ...blankAnswers(), cities: [{ name: "Milano" }], salary_min: "38", roles: [{ title: "Operations Analyst", priority: "core" }] } };
+    if (params.get("vista") === "profilo") { loadSaved(); S.viewOnly = true; S.step = "recap"; }
+    else if (params.has("rifai")) S.step = "cv";
+    return render();
+  }
   const sheetId = ls.get(SHEET_KEY);
   if (!CONFIG.clientId || !sheetId) {
     return screen(`<h1>Prima collega il foglio</h1><p class="lead">Il profilo si salva nel tuo foglio delle candidature.
@@ -134,6 +145,18 @@ async function start() {
     S.saved = raw ? JSON.parse(raw) : null;
   } catch (e) {
     if (!S.store.signedIn) return showLogin(e.message);
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.get("vista") === "profilo" && S.saved?.search) {
+    loadSaved();
+    S.viewOnly = true;
+    S.step = "recap";
+    return render();
+  }
+  if (params.has("rifai")) {
+    ls.set(DRAFT_KEY, null);
+    S.step = "cv";
+    return render();
   }
   if (draft && draft.step && !["intro", "saved", "building"].includes(draft.step)) {
     Object.assign(S, draft, { answers: { ...blankAnswers(), ...draft.answers }, step: "intro" });
@@ -167,8 +190,7 @@ function render(animate = false) {
   const view = VIEWS[S.step]();
   $("#app").innerHTML = `
     <header class="topbar"><div class="topbar-in">${brand()}
-      <div class="topbar-actions">${S.demo ? `<span class="badge">Esempio</span>` : ""}
-        <a class="btn btn-quiet btn-sm" href="./${S.demo ? "?demo=1" : ""}">Esci</a></div></div>${progress}</header>
+      <div class="topbar-actions">${S.demo ? `<span class="badge">Esempio</span>` : ""}${accountButton()}</div></div>${progress}</header>
     <main class="pf-main${animate ? " pf-enter" : ""}">
       ${counter}
       <h1>${view.title}</h1>
@@ -178,13 +200,21 @@ function render(animate = false) {
     </main>
     ${view.nav === false ? "" : nav(view)}
     <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+  initAccount({
+    store: S.store, demo: S.demo, here: "profile",
+    onExitDemo: () => { location.href = "./"; },
+    onSignOut: () => { S.store.signOut?.(); location.href = "./"; },
+    onSwitch: async () => {
+      try { await S.store.signIn("select_account"); await start(); } catch (err) { S.error = err.message; render(); }
+    },
+  });
   view.after?.();
   if (animate) window.scrollTo({ top: 0 });
 }
 
 function nav(view) {
   const i = STEPS.indexOf(S.step);
-  const back = view.back !== false && i > 0 ? `<button class="btn btn-quiet" data-act="back">Indietro</button>` : "<span></span>";
+  const back = view.back !== false && i > 0 ? `<button class="btn btn-quiet" data-act="back">${view.backLabel || "Indietro"}</button>` : "<span></span>";
   return `<footer class="pf-nav"><div class="pf-nav-in">${back}
     <button class="btn btn-primary" data-act="next" ${view.canNext === false || S.busy ? "disabled" : ""}>${view.nextLabel || "Avanti"}</button></div></footer>`;
 }
@@ -197,6 +227,30 @@ const seg = (name, options, value) => `<div class="pf-seg">${options.map((o) =>
 const tags = (key, list, placeholder) => `<div class="pf-tags" data-tags="${key}">${list.map((t, i) =>
   `<span class="pf-tag">${esc(t)}<button type="button" data-act="untag" data-k="${key}" data-i="${i}" aria-label="Togli ${esc(t)}">&times;</button></span>`).join("")}
   <input type="text" data-addtag="${key}" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}"></div>`;
+// Distance as a slider: any value from 5 to 100 km, the number updates while you drag.
+const radiusSlider = (value) => {
+  const v = Math.min(RADIUS.max, Math.max(RADIUS.min, Number(value) || 50));
+  const pct = ((v - RADIUS.min) / (RADIUS.max - RADIUS.min)) * 100;
+  return `<div class="pf-range">
+    <div class="pf-range-top"><output id="radius-out" for="radius" aria-hidden="true"><b>${v}</b> km</output>
+      <span class="pf-help" id="radius-hint">${radiusHint(v)}</span></div>
+    <input type="range" id="radius" min="${RADIUS.min}" max="${RADIUS.max}" step="${RADIUS.step}" value="${v}" style="--p:${pct}%"
+      aria-label="Distanza massima dal centro" aria-valuetext="${v} chilometri" aria-describedby="radius-hint">
+    <div class="pf-range-marks" aria-hidden="true">${RADIUS.marks.map((m) => `<span style="--x:${((m - RADIUS.min) / (RADIUS.max - RADIUS.min)) * 100}%">${m}</span>`).join("")}</div>
+  </div>`;
+};
+// Travel as a four-stop slider: same look as the distance, the value is one of TRAVEL.
+const travelSlider = (value) => {
+  const i = Math.max(0, TRAVEL.findIndex((t) => t.id === String(value)));
+  return `<div class="pf-range">
+    <div class="pf-range-top"><output id="travel-out" aria-hidden="true"><b>${esc(TRAVEL[i].t)}</b></output></div>
+    <input type="range" id="travel" min="0" max="${TRAVEL.length - 1}" step="1" value="${i}" style="--p:${(i / (TRAVEL.length - 1)) * 100}%"
+      aria-label="Trasferte" aria-valuetext="${esc(TRAVEL[i].t)}">
+    <div class="pf-range-marks" aria-hidden="true">${TRAVEL.map((t, k) => `<span style="--x:${(k / (TRAVEL.length - 1)) * 100}%">${esc(t.t.replace("Fino al ", ""))}</span>`).join("")}</div>
+  </div>`;
+};
+const radiusHint = (v) => (v <= 15 ? "Solo la città e la prima cintura" : v <= 35 ? "Città e comuni vicini"
+  : v <= 60 ? "Tutta l'area metropolitana" : "Anche le province vicine, con più pendolarismo");
 const field = (label, input, hint = "") => `<label class="field pf-field"><span>${label}</span>${input}${hint ? `<small>${hint}</small>` : ""}</label>`;
 const block = (title, help, body) => `<section class="pf-block"><h2>${title}</h2>${help ? `<p class="pf-help">${help}</p>` : ""}${body}</section>`;
 
@@ -214,7 +268,8 @@ const VIEWS = {
           <li><b>Il profilo</b><span>Ti propongo come impostare la ricerca. Lo approvi tu, e da quel momento l'agente lo usa.</span></li>
         </ol>
         ${S.resumed ? `<div class="note note-amber">Avevi lasciato il profilo a metà: riprendi da dove eri.</div>` : ""}
-        ${S.saved ? `<button class="btn btn-quiet btn-block" data-act="edit-saved">Cambia solo le risposte</button>` : ""}`,
+        ${S.saved ? `<div class="pf-two"><button class="btn btn-quiet" data-act="view-saved">Vedi il profilo salvato</button>
+          <button class="btn btn-quiet" data-act="edit-saved">Cambia solo le risposte</button></div>` : ""}`,
       nextLabel: S.resumed ? "Riprendi" : S.saved ? "Riparti dal CV" : "Inizia",
       back: false,
     };
@@ -320,10 +375,10 @@ const VIEWS = {
       body: `${block("Città", "Scegline una o più. Le offerte da remoto passano se sono aperte all'Italia.", `<div class="pf-chips">${cities.map((c) =>
           chip(c, a.cities.some((x) => x.name === c), "city", `data-v="${esc(c)}"`)).join("")}</div>
           <div class="pf-add"><input type="text" id="new-city" placeholder="Un'altra città" aria-label="Aggiungi una città"><button class="btn btn-quiet" data-act="add-city">Aggiungi</button></div>`)}
-        ${block("Distanza massima dal centro", "", seg("answers.radius", RADIUS.map((r) => ({ id: r, t: `${r} km` })), a.radius))}
+        ${block("Distanza massima dal centro", "Fin dove arrivi ogni giorno senza fatica. Vale per tutte le città scelte.", radiusSlider(a.radius))}
         ${block("Modalità", "Puoi sceglierne più di una.", `<div class="pf-chips">${MODES.map((m) => chip(m, a.modes.includes(m), "mode", `data-v="${m}"`)).join("")}</div>`)}
         ${block("Ti trasferiresti per il lavoro giusto?", "", seg("answers.relocation", RELOCATION, a.relocation))}
-        ${block("Trasferte", "", seg("answers.travel", TRAVEL, a.travel))}`,
+        ${block("Trasferte", "Quanto tempo di lavoro sei disposto a passare in viaggio.", travelSlider(a.travel))}`,
       canNext: a.cities.length > 0 && a.modes.length > 0,
     };
   },
@@ -388,9 +443,11 @@ const VIEWS = {
   recap() {
     const s = S.search, a = S.answers;
     const fitName = { core: "Obiettivo principale", adjacent: "Affine", exploratory: "Da esplorare" };
+    const when = S.saved?.saved_at ? new Date(S.saved.saved_at).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" }) : "";
     return {
       title: "Il tuo profilo di ricerca",
-      lead: "Ecco come cercherà l'agente. Se qualcosa non torna, torna alle risposte e cambiale.",
+      lead: S.viewOnly ? `È il profilo che l'agente usa oggi${when ? `, salvato il ${esc(when)}` : ""}. Per cambiarlo modifica le risposte o rifai la profilazione dal CV.`
+        : "Ecco come cercherà l'agente. Se qualcosa non torna, torna alle risposte e cambiale.",
       body: `<blockquote class="pf-quote"><span>Come l'ho impostato</span>${esc(s.comment_it)}</blockquote>
         <section class="pf-block"><h2>Direzioni di ricerca</h2><div class="pf-fams">${s.role_families.map((f, i) => `
           <article class="pf-fam"><div class="pf-fam-h"><b>${esc(f.name)}</b><span class="pill tone-line">${fitName[f.fit] || f.fit}</span><span class="pf-w">${f.weight}%</span></div>
@@ -408,7 +465,8 @@ const VIEWS = {
         <section class="pf-block"><h2>Avvisi LinkedIn</h2><p class="pf-help">L'agente legge le email di avviso di LinkedIn: aggiorna i tuoi avvisi con queste parole, una per avviso.</p>
           <div class="chips">${s.linkedin_keywords.map((k) => `<span class="chip">${esc(k)}</span>`).join("")}</div>
           <button class="btn btn-quiet btn-sm pf-copy" data-act="copy-kw">Copia le parole</button></section>`,
-      nextLabel: S.demo ? "Salva (esempio)" : "Salva e usa questo profilo",
+      nextLabel: S.viewOnly ? "Modifica le risposte" : S.demo ? "Salva (esempio)" : "Salva e usa questo profilo",
+      backLabel: S.viewOnly ? "Rifai dal CV" : "",
       back: true,
     };
   },
@@ -425,6 +483,15 @@ const VIEWS = {
 };
 
 // ================================================================ actions
+function loadSaved() {
+  Object.assign(S, { facts: S.saved.facts, answers: { ...blankAnswers(), ...S.saved.answers }, search: S.saved.search });
+  // Saved answers carry sector lists: rebuild the tri-state map.
+  S.answers.sectors = {};
+  (S.saved.answers.sectors_like || []).forEach((s) => { S.answers.sectors[s] = "like"; });
+  (S.saved.answers.sectors_avoid || []).forEach((s) => { S.answers.sectors[s] = "avoid"; });
+  S.answers.move = MOVES.find((m) => m.t === S.saved.answers.move)?.id || S.answers.move;
+}
+
 function emptyFacts() {
   return { name: "", current_role: "", current_company: "", years_experience: "", seniority: "mid", city: "", country: "IT",
     education: "", languages: [], skills: [], industries: [], functions: [], achievements: [] };
@@ -532,6 +599,7 @@ function next() {
     return go("cv");
   }
   if (S.step === "motivation") return build();
+  if (S.step === "recap" && S.viewOnly) { S.viewOnly = false; return go("facts"); }
   if (S.step === "recap") return save();
   go(ORDER[i + 1]);
 }
@@ -539,6 +607,7 @@ function next() {
 function back() {
   readInputs();
   const i = ORDER.indexOf(S.step);
+  if (S.step === "recap" && S.viewOnly) { S.viewOnly = false; S.facts = null; S.answers = blankAnswers(); return go("cv"); }
   if (S.step === "recap") return go("motivation");
   if (S.step === "facts") return go("cv");
   go(ORDER[Math.max(0, i - 1)]);
@@ -556,13 +625,10 @@ document.addEventListener("click", async (e) => {
   if (act === "next") return next();
   if (act === "back") return back();
   if (act === "manual") { if (needConsent()) return; S.facts = S.facts || emptyFacts(); return go("facts"); }
+  if (act === "view-saved") { loadSaved(); S.viewOnly = true; return go("recap"); }
   if (act === "edit-saved") {
-    Object.assign(S, { facts: S.saved.facts, answers: { ...blankAnswers(), ...S.saved.answers }, search: S.saved.search });
-    // Saved answers carry sector lists: rebuild the tri-state map.
-    S.answers.sectors = {};
-    (S.saved.answers.sectors_like || []).forEach((s) => { S.answers.sectors[s] = "like"; });
-    (S.saved.answers.sectors_avoid || []).forEach((s) => { S.answers.sectors[s] = "avoid"; });
-    S.answers.move = MOVES.find((m) => m.t === S.saved.answers.move)?.id || S.answers.move;
+    loadSaved();
+    S.viewOnly = false;
     return go("facts");
   }
   if (act === "set") {
@@ -616,6 +682,25 @@ document.addEventListener("click", async (e) => {
 
 // Typing updates the state at once, so "Avanti" turns on as soon as the answer is there.
 document.addEventListener("input", (e) => {
+  if (e.target.id === "travel") {
+    const i = Number(e.target.value), t = TRAVEL[i];
+    S.answers.travel = t.id;
+    e.target.style.setProperty("--p", `${(i / (TRAVEL.length - 1)) * 100}%`);
+    e.target.setAttribute("aria-valuetext", t.t);
+    $("#travel-out").innerHTML = `<b>${esc(t.t)}</b>`;
+    saveDraft();
+    return;
+  }
+  if (e.target.id === "radius") {
+    const v = Number(e.target.value);
+    S.answers.radius = v;
+    e.target.style.setProperty("--p", `${((v - RADIUS.min) / (RADIUS.max - RADIUS.min)) * 100}%`);
+    e.target.setAttribute("aria-valuetext", `${v} chilometri`);
+    $("#radius-out").innerHTML = `<b>${v}</b> km`;
+    $("#radius-hint").textContent = radiusHint(v);
+    saveDraft();
+    return;
+  }
   if (!e.target.dataset?.a && !e.target.dataset?.f) return;
   readInputs();
   const btn = document.querySelector("[data-act=next]");

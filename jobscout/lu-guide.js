@@ -1,9 +1,13 @@
 // What Lu knows about the dashboard screen: sent to the assistant with every question, so it can tell the user
 // where to click. Keep it in line with app.js when buttons, tabs or labels change.
 export const GUIDE = `
-In alto: saluto con le offerte che aspettano un sì o un no e i CV pronti, e quando parte la prossima ricerca.
-Barra in alto a destra: "?" apre le domande frequenti, "Profilo" apre la profilazione (CV e preferenze), la freccia
-circolare aggiorna i dati, l'icona del foglio apre il foglio Google, "Esci" chiude la sessione.
+In alto: saluto con le offerte che aspettano un sì o un no e i CV pronti, e quando parte la prossima ricerca. Accanto,
+il pulsante "Valuta le offerte" (o "Vedi i CV pronti") porta alla scheda giusta della lista.
+Barra in alto a destra: la freccia circolare aggiorna i dati; l'icona tonda con l'omino apre il menu dell'account con
+"Vedi il tuo profilo" (il profilo di ricerca salvato), "Rifai la profilazione" (CV e domande da capo), "Abbonamento"
+(oggi il servizio è gratuito), "Apri il foglio Google", il tema (Sistema, Chiaro, Scuro), "Domande frequenti",
+"Privacy e termini", "Cambia account" ed "Esci".
+Nella profilazione la distanza massima dal centro della città si sceglie con una barra scorrevole, da 5 a 100 km.
 Riquadri numerici (cliccabili): Da valutare, CV pronti, Candidature, Risposte (quota di candidature con risposta),
 Colloqui. Cliccandoli si apre la scheda corrispondente della lista.
 Lista "Offerte e candidature": ricerca per azienda o ruolo, filtro per tipo di ruolo, ordinamento (Più recenti, Match

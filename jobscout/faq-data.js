@@ -75,7 +75,7 @@ export const FAQ = [
       },
       {
         q: "Posso aggiornare il mio CV di riferimento?",
-        a: "Sì, dalla pagina Profilo o chiedendo un aggiornamento. Dopo la modifica si possono rifare i CV delle offerte non ancora inviate.",
+        a: "Sì, dal menu dell'account (icona con l'omino in alto a destra): "Vedi il tuo profilo" per cambiare le risposte, "Rifai la profilazione" per ripartire dal CV. Dopo la modifica si possono rifare i CV delle offerte non ancora inviate.",
       },
     ],
   },
