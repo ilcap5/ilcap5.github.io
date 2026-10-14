@@ -1,14 +1,14 @@
-import { accountButton, initAccount } from "./account.js?v=202610132014";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610132014";
-import { CONFIG } from "./config.js?v=202610132014";
-import { DemoStore, SheetsStore } from "./store.js?v=202610132014";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610132014";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610132014";
+import { accountButton, initAccount } from "./account.js?v=202610140917";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610140917";
+import { CONFIG } from "./config.js?v=202610140917";
+import { DemoStore, SheetsStore } from "./store.js?v=202610140917";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610140917";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610140917";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610132014";
+} from "./schema.js?v=202610140917";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

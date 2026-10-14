@@ -1,8 +1,8 @@
 // "Progetto" view, only for the owner of the agent (admin): the agent copies SAL, council reports, roadmap and the
 // last runs into the "Progetto" tab of the sheet (jobagent/project.py). No tab, no view.
 
-import { mdToHtml } from "./md.js?v=202610132014";
-import { parseDate, shortDate } from "./schema.js?v=202610132014";
+import { mdToHtml } from "./md.js?v=202610140917";
+import { parseDate, shortDate } from "./schema.js?v=202610140917";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const json = (s, fallback) => { try { return JSON.parse(s); } catch { return fallback; } };
@@ -137,6 +137,7 @@ const GROUPS = [
   ["Candidature", ["classifica email", "bozza follow-up", "siti aziende"]],
   ["Report", ["report giornaliero"]],
   ["Lu", ["assistente"]],
+  ["Profilo", ["profilo lettura CV", "profilo costruzione"]],
 ];
 const groupOf = (task) => (GROUPS.find(([, tasks]) => tasks.includes(task)) || ["Altro"])[0];
 const usd = (n) => `${(Math.round(n * 100) / 100).toFixed(2).replace(".", ",")} $`;

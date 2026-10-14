@@ -1,9 +1,9 @@
 // Profile onboarding: CV first, then the questions a good headhunter would ask, then the search profile the agent uses.
 // One topic per screen, everything pre-filled from the CV where possible, a draft kept in this browser.
 
-import { CONFIG } from "./config.js?v=202610132014";
-import { accountButton, initAccount } from "./account.js?v=202610132014";
-import { DemoStore, SheetsStore } from "./store.js?v=202610132014";
+import { CONFIG } from "./config.js?v=202610140917";
+import { accountButton, initAccount } from "./account.js?v=202610140917";
+import { DemoStore, SheetsStore } from "./store.js?v=202610140917";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -81,6 +81,15 @@ const blankAnswers = () => ({
   salary_min: "", salary_target: "", work_language: "any", notice: "3m",
   motivators: [], good_day: "", dealbreakers: "", in_3_years: "",
 });
+// Cost of each AI call of the profiling in the "Costi" tab: the monthly budget and the spend chart count it too.
+function logCost(task, u) {
+  if (!u || !S.store?.appendRows) return;
+  const d = new Date();
+  const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  S.store.appendRows("Costi", [[day, task, u.model, u.input, u.output, u.cache_read, u.cache_write, "no", u.usd]])
+    .catch((e) => console.warn("Costo della profilazione non registrato:", e.message));
+}
+
 const S = {
   store: null, demo: false, step: "intro", busy: false, error: "",
   facts: null, suggestions: { roles: [], sectors: [] }, recruiter: "", answers: blankAnswers(), search: null,
@@ -112,7 +121,7 @@ async function boot() {
   if (S.demo) {
     S.store = new DemoStore();
     // A sample saved profile, so the account menu's "Vedi il tuo profilo" works in the demo too.
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610132014");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610140917");
     const f = demoInfer().facts;
     S.saved = { saved_at: new Date().toISOString(), facts: f, search: demoBuild(),
       answers: { ...blankAnswers(), cities: [{ name: "Milano" }], salary_min: "38", roles: [{ title: "Operations Analyst", priority: "core" }] } };
@@ -510,6 +519,7 @@ async function readCv(file) {
       r.readAsDataURL(file);
     });
     const out = await S.store.api(CONFIG.apiUrl, "/v1/profile/infer", { cv_pdf_base64: b64 });
+    logCost("profilo lettura CV", out.usage);
     S.facts = { ...emptyFacts(), ...out.facts };
     S.suggestions = out.suggestions || { roles: [], sectors: [] };
     S.recruiter = out.recruiter_read_it || "";
@@ -566,6 +576,8 @@ async function build() {
   go("building");
   try {
     S.search = await S.store.api(CONFIG.apiUrl, "/v1/profile/build", { facts: S.facts, answers: answersPayload() });
+    logCost("profilo costruzione", S.search.usage);
+    delete S.search.usage;
     go("recap");
   } catch (e) {
     S.step = "motivation";
