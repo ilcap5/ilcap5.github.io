@@ -1,14 +1,15 @@
-import { accountButton, initAccount } from "./account.js?v=202610150918";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610150918";
-import { CONFIG } from "./config.js?v=202610150918";
-import { DemoStore, SheetsStore } from "./store.js?v=202610150918";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610150918";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610150918";
+import { accountButton, initAccount } from "./account.js?v=202610151626";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610151626";
+import { CONFIG } from "./config.js?v=202610151626";
+import { DemoStore, SheetsStore } from "./store.js?v=202610151626";
+import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610151626";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610151626";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610151626";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610150918";
+} from "./schema.js?v=202610151626";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -104,12 +105,14 @@ async function reload(first = false) {
   if (first) state.logos = readLogos();
   document.body.classList.add("is-loading");
   try {
-    const [{ jobs, url }, projectRows, seen] = await Promise.all([
+    const [{ jobs, url }, projectRows, seen, market] = await Promise.all([
       state.store.load(),
       state.store.loadProject().catch(() => null),
       first ? state.store.getState(SEEN_KEY).catch(() => "") : Promise.resolve(null),
+      state.store.getState(INSIGHTS_KEY).catch(() => ""),
     ]);
     state.jobs = jobs;
+    state.market = parseInsights(market);
     state.project = parseProject(projectRows);
     if (!state.project && state.view === "project") state.view = "jobs";
     if (seen !== null) { try { state.seen = new Set(JSON.parse(seen || "[]")); } catch { state.seen = new Set(); } }
@@ -144,6 +147,7 @@ function shell() {
     <section class="hero" id="hero"></section>
     <section class="kpis" id="kpis" aria-label="Indicatori"></section>
     <section class="insights" id="insights"></section>
+    <section class="market" id="market" aria-label="Il tuo mercato" hidden></section>
     <section class="panel list-panel" aria-label="Offerte e candidature">
       <div class="list-head">
         <h2>Offerte e candidature</h2>
@@ -184,6 +188,7 @@ function renderAll() {
   renderHero();
   renderKpis();
   renderInsights();
+  renderMarket();
   renderFilters();
   renderTabs();
   renderTable();
@@ -385,6 +390,13 @@ function renderInsights() {
   $("#insights").innerHTML = `
     <div class="panel pad"><div class="panel-h"><h2>Da fare</h2></div><div class="todos">${todoHtml}</div></div>
     <div class="panel pad"><div class="panel-h"><h2>Andamento</h2><span class="muted sm">dalla ricerca all'offerta</span></div><div class="funnel">${funnel}</div>${stats}</div>`;
+}
+
+// Funnel of the last run, market salary, most frequent gaps (Stato > insights_v1): hidden until the agent writes them.
+function renderMarket() {
+  const el = $("#market");
+  el.innerHTML = marketHtml(state.market);
+  el.hidden = !state.market;
 }
 
 // ================================================================ list

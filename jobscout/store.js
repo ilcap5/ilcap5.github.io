@@ -4,8 +4,8 @@
 //   load()              -> { jobs: [...], url }
 //   update(id, fields)  -> writes the fields of one job
 
-import { HEADERS } from "./schema.js?v=202610150918";
-import { demoCosts, demoJobs, demoProject } from "./demo.js?v=202610150918";
+import { HEADERS } from "./schema.js?v=202610151626";
+import { demoCosts, demoInsights, demoJobs, demoProject } from "./demo.js?v=202610151626";
 
 const TAB = "Candidature";
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
@@ -216,6 +216,7 @@ export class DemoStore {
     this.label = "Dati di esempio";
     this.url = "";
     this.jobs = demoJobs();
+    this.state = { insights_v1: JSON.stringify(demoInsights()) };
   }
   get signedIn() { return true; }
   async load() { return { jobs: structuredClone(this.jobs), url: "" }; }
@@ -239,7 +240,7 @@ export class DemoStore {
         usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
       };
     }
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610150918");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610151626");
     await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
     return path.endsWith("infer") ? demoInfer() : demoBuild(body);
   }
