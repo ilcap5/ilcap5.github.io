@@ -54,7 +54,7 @@ export const FAQ = [
       },
       {
         q: "Quale motivo scelgo quando dico no?",
-        a: "Il motivo decide cosa impara l'agente. \"Ruolo non interessante\", \"Settore non interessante\", \"Troppo senior\" e \"Troppo junior\" fanno evitare offerte simili. \"Azienda non interessante\" esclude quell'azienda. \"Azienda ok, ruolo non in linea\", \"RAL bassa\" e \"Sede / modalità\" scartano solo quell'offerta. \"Altro\" vale come esempio solo se scrivi una nota.",
+        a: "Il motivo decide cosa impara l'agente. \"Ruolo non interessante\", \"Settore non interessante\", \"Troppo senior\" e \"Troppo junior\" fanno evitare offerte simili. \"Azienda non interessante\" esclude quell'azienda e, se scrivi nella nota perché, anche le aziende simili. \"Lingua che non parlo\" fa evitare le offerte che chiedono una lingua che non hai. \"Riservata a categorie protette\" esclude tutte le offerte riservate alle categorie protette (L. 68/99). \"Azienda ok, ruolo non in linea\", \"RAL bassa\", \"Sede / modalità\" e \"Doppione o già candidato\" scartano solo quell'offerta. \"Altro\" vale come esempio solo se scrivi una nota.",
       },
       {
         q: "Ho scartato un'offerta per sbaglio, posso tornare indietro?",

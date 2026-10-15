@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202610140917";
+import { addDays, fmtDate, today } from "./schema.js?v=202610150918";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 

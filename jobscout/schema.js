@@ -33,12 +33,15 @@ export const PRE_APPLY = new Set([S.NEW, S.STANDBY, S.CV_READY, S.CV_CHECK]);
 export const REJECT_EFFECTS = {
   "Ruolo non interessante": "Non ti propongo più ruoli di questo tipo, in nessuna azienda.",
   "Azienda ok, ruolo non in linea": "Scarto solo questa offerta: l'azienda e i ruoli simili restano tra le proposte.",
-  "Azienda non interessante": "Non ti propongo più offerte di questa azienda.",
+  "Azienda non interessante": "Non ti propongo più offerte di questa azienda. Se scrivi nella nota perché, evito anche aziende simili.",
   "Troppo senior": "Abbasso il massimo di anni richiesti e scarto offerte simili per livello.",
   "Troppo junior": "Alzo il minimo di anni richiesti in quest'area e scarto offerte simili per livello.",
   "Settore non interessante": "Non ti propongo più offerte di questo settore.",
   "RAL bassa": "Scarto solo questa offerta: la soglia della RAL resta quella impostata.",
   "Sede / modalità": "Scarto solo questa offerta.",
+  "Lingua che non parlo": "Scarto le offerte che chiedono una lingua che non parli al livello richiesto.",
+  "Riservata a categorie protette": "Non ti propongo più offerte riservate alle categorie protette (L. 68/99).",
+  "Doppione o già candidato": "Scarto solo questa offerta, senza trarne conclusioni sui tuoi gusti.",
   "Altro": "Scarto solo questa offerta. Se scrivi una nota, l'agente la usa come esempio.",
 };
 export const REJECT_REASONS = Object.keys(REJECT_EFFECTS);
