@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202610150918";
+import { addDays, fmtDate, today } from "./schema.js?v=202610151626";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 
@@ -98,4 +98,22 @@ export function demoCosts() {
     if (day % 4 === 0) rows.push([iso(d), "assistente", "claude-haiku-4-5", 0, 0, 0, 0, "no", 0.004]);
   }
   return rows;
+}
+
+// Sample "insights_v1" (Stato tab): invented numbers, the shape jobagent/insights.py writes.
+export function demoInsights() {
+  const t = today();
+  const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  return {
+    aggiornato: iso, giorni: 120, offerte_in_target: 64,
+    ral: { annunci: 14, min: 41500, max: 52000, da: 36000, a: 70000, forchetta: "42-52k",
+      per_tipo: { Core: { annunci: 8, forchetta: "44-55k" }, Affine: { annunci: 4, forchetta: "40-50k" } } },
+    mancanti: [
+      { requisito: "SQL", conteggio: 6, nel_cv: true },
+      { requisito: "Tedesco fluente", conteggio: 4, nel_cv: false },
+      { requisito: "Esperienza in startup", conteggio: 3, nel_cv: false },
+    ],
+    imbuto: { data: iso, lette: 212, nuove: 83, analizzate: 40, aggiunte: 14, proposte: 9, rimandate: 15,
+      motivi: { "Fuori zona": 20, "Ruolo non in target": 15, "Livello o esperienza": 12, "RAL sotto soglia": 4, "Doppioni": 3 } },
+  };
 }

@@ -1,7 +1,7 @@
 // Account menu shared by the dashboard and the profile page: a person icon in the top bar that opens the usual
 // account choices (profile, subscription, theme, help, change account, sign out).
 // The page passes what it can do: { store, demo, sheetUrl, onSwitch, onSignOut, onExitDemo, here }.
-import { CONFIG } from "./config.js?v=202610150918";
+import { CONFIG } from "./config.js?v=202610151626";
 
 const THEME_KEY = "jobscout.theme";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
