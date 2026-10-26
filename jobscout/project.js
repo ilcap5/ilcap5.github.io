@@ -1,8 +1,8 @@
 // "Progetto" view, only for the owner of the agent (admin): the agent copies SAL, council reports, roadmap and the
 // last runs into the "Progetto" tab of the sheet (jobagent/project.py). No tab, no view.
 
-import { mdToHtml } from "./md.js?v=202610151626";
-import { parseDate, shortDate } from "./schema.js?v=202610151626";
+import { mdToHtml } from "./md.js?v=202610261710";
+import { parseDate, shortDate } from "./schema.js?v=202610261710";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const json = (s, fallback) => { try { return JSON.parse(s); } catch { return fallback; } };

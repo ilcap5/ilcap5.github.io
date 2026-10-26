@@ -3,7 +3,9 @@
 export const GUIDE = `
 In alto: saluto con le offerte che aspettano un sì o un no e i CV pronti, e quando parte la prossima ricerca. Accanto,
 il pulsante "Valuta le offerte" (o "Vedi i CV pronti") porta alla scheda giusta della lista.
-Barra in alto a destra: la campanella apre le notifiche (CV pronti, risposte delle aziende, follow-up da inviare, offerte
+Barra in alto a destra: il pulsante On/Off ("Attivo" in verde, "In pausa" in giallo con l'icona barrata) accende o mette
+in pausa l'agente; in pausa non fa ricerche, CV su misura, tracciamento delle email né il riepilogo delle 18, così non
+spende per l'AI, e riparte dal giro successivo appena lo riaccendi. Accanto, la campanella apre le notifiche (CV pronti, risposte delle aziende, follow-up da inviare, offerte
 nuove dell'ultima ricerca; il numero rosso dice quante non sono ancora lette, "Segna tutto come letto" le azzera e
 cliccandone una si apre l'offerta); la freccia circolare aggiorna i dati; l'icona tonda con l'omino apre il menu dell'account con
 "Vedi il tuo profilo" (il profilo di ricerca salvato), "Rifai la profilazione" (CV e domande da capo), "Abbonamento"

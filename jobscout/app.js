@@ -1,15 +1,15 @@
-import { accountButton, initAccount } from "./account.js?v=202610151626";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610151626";
-import { CONFIG } from "./config.js?v=202610151626";
-import { DemoStore, SheetsStore } from "./store.js?v=202610151626";
-import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610151626";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610151626";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610151626";
+import { accountButton, initAccount } from "./account.js?v=202610261710";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610261710";
+import { CONFIG } from "./config.js?v=202610261710";
+import { DemoStore, SheetsStore } from "./store.js?v=202610261710";
+import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610261710";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610261710";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610261710";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610151626";
+} from "./schema.js?v=202610261710";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -19,7 +19,7 @@ const store_set = (k, v) => { try { v == null ? localStorage.removeItem(k) : loc
 
 const state = {
   store: null, jobs: [], url: "", loadedAt: 0, tab: "all", q: "", fit: "", sort: "found",
-  logos: {}, view: "jobs", ptab: "overview", project: null, seen: new Set(), doc: null, selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
+  logos: {}, paused: "", view: "jobs", ptab: "overview", project: null, seen: new Set(), doc: null, selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
 };
 
 // ================================================================ icons (one stroke, one size)
@@ -35,6 +35,8 @@ const PATHS = {
   send: '<path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/>',
   question: '<circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 0 1 4.4.9c0 1.6-2.2 2-2.2 3.4"/><path d="M12 16.8v.2"/>',
   sheet: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/>',
+  power: '<path d="M12 3.5v8"/><path d="M7.2 6.4a7.5 7.5 0 1 0 9.6 0"/>',
+  powerOff: '<path d="M12 3.5v5"/><path d="M7.2 6.4a7.5 7.5 0 1 0 9.6 0"/><path d="M4 4l16 16"/>',
   chat: '<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 9.5h8M8 12.5h5"/>',
 };
 const icon = (name, size = 18) => `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -105,12 +107,14 @@ async function reload(first = false) {
   if (first) state.logos = readLogos();
   document.body.classList.add("is-loading");
   try {
-    const [{ jobs, url }, projectRows, seen, market] = await Promise.all([
+    const [{ jobs, url }, projectRows, seen, market, paused] = await Promise.all([
       state.store.load(),
       state.store.loadProject().catch(() => null),
       first ? state.store.getState(SEEN_KEY).catch(() => "") : Promise.resolve(null),
       state.store.getState(INSIGHTS_KEY).catch(() => ""),
+      state.store.getState(PAUSE_KEY).catch(() => state.paused),
     ]);
+    state.paused = paused || "";
     state.jobs = jobs;
     state.market = parseInsights(market);
     state.project = parseProject(projectRows);
@@ -199,6 +203,7 @@ function renderTop() {
   const demo = state.store instanceof DemoStore;
   $("#topbar-actions").innerHTML = `
     ${demo ? `<span class="badge">Dati di esempio</span>` : ""}
+    ${powerButton()}
     ${bellButton(unreadCount())}
     <button class="btn btn-icon" data-action="reload" title="Aggiorna" aria-label="Aggiorna">${icon("refresh")}</button>
     ${accountButton()}`;
@@ -211,6 +216,40 @@ function renderTop() {
       try { await state.store.signIn("select_account"); await start(state.store); } catch (err) { toast(err.message, "error"); }
     },
   });
+}
+
+// ================================================================ On/Off of the agent
+// Stato > agent_paused_v1: the day of the pause, empty when on. The agent reads it at every run (jobagent/__main__.py):
+// in pause no search, no CV, no tracking and no 18:00 email, so no API spend.
+const PAUSE_KEY = "agent_paused_v1";
+
+function powerButton() {
+  const off = Boolean(state.paused);
+  const since = off ? parseDate(state.paused) : null;
+  const tip = off ? `Agente in pausa${since ? ` dal ${shortDate(state.paused)}` : ""}: tocca per riaccenderlo` : "Agente attivo: tocca per metterlo in pausa";
+  return `<button class="btn power${off ? " off" : ""}" data-action="power" aria-pressed="${!off}" title="${esc(tip)}" aria-label="${esc(tip)}">
+    ${icon(off ? "powerOff" : "power")}<span class="power-txt">${off ? "In pausa" : "Attivo"}</span></button>`;
+}
+
+async function togglePower() {
+  if (state.busy) return;
+  const before = state.paused;
+  const d = today();
+  state.paused = before ? "" : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  state.busy = true;
+  renderTop();
+  renderHero();
+  try {
+    await state.store.setState(PAUSE_KEY, state.paused);
+    toast(state.paused ? "Agente in pausa: niente ricerche, CV e tracciamento finché non lo riaccendi." : "Agente acceso: riparte dal prossimo giro.");
+  } catch (e) {
+    state.paused = before;
+    renderTop();
+    renderHero();
+    toast(`Non salvato: ${e.message}`, "error");
+  } finally {
+    state.busy = false;
+  }
 }
 
 // ================================================================ views, project, notifications
@@ -301,7 +340,7 @@ function renderHero() {
     <div class="hero-txt">
       <p class="hero-date">${esc(longDate())}</p>
       <h1>${hello}${name}</h1>
-      <p class="hero-line">${line}${next ? ` <span class="muted">Prossima ricerca ${esc(next)}.</span>` : ""}</p>
+      <p class="hero-line">${line}${state.paused ? ` <span class="amber">Agente in pausa: nessuna ricerca finché non lo riaccendi.</span>` : next ? ` <span class="muted">Prossima ricerca ${esc(next)}.</span>` : ""}</p>
     </div>${cta}`;
 }
 
@@ -786,6 +825,7 @@ document.addEventListener("click", async (e) => {
   const a = el.dataset.action;
   const id = el.dataset.id;
   if (a === "demo") return start(new DemoStore());
+  if (a === "power") return togglePower();
   if (a === "exit-demo") { location.href = location.pathname; return; }
   if (a === "save-sheet") {
     const v = $("#sheet-link").value || "";

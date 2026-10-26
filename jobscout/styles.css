@@ -573,6 +573,12 @@ body.lu-open .lu-fab { opacity: 0; pointer-events: none; transform: scale(.9); }
 .view-btn.on { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgb(10 30 22 / .12), inset 0 0 0 1px var(--line); }
 .view-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--dot-brand, var(--brand-2)); }
 
+/* ---------- On/Off of the agent */
+.power { height: 38px; padding: 0 12px 0 10px; gap: 6px; font-size: 13.5px; background: var(--brand-soft); color: var(--brand-2); }
+.power:hover { border-color: currentColor; }
+.power.off { background: var(--amber-bg); color: var(--amber); }
+.power.off:hover { border-color: currentColor; }
+
 /* ---------- notifications (notify.js) */
 .bell { position: relative; }
 .bell-btn { position: relative; }
@@ -663,9 +669,16 @@ body.lu-open .lu-fab { opacity: 0; pointer-events: none; transform: scale(.9); }
   .views { margin-left: 8px; }
   .view-btn { padding: 0 10px; font-size: 13px; }
   .bell-panel { position: fixed; left: 12px; right: 12px; top: 60px; width: auto; }
+  .power { width: 38px; padding: 0; }
+  .power-txt { display: none; }
 }
 @media (max-width: 420px) {
   .brand-name { display: none; }
+  .topbar-in { gap: 6px; }
+  .topbar-actions { gap: 0; }
+  .views { margin-left: 6px; }
+  .view-btn { padding: 0 8px; }
+  .topbar-actions .btn-icon, .power { width: 34px; }
 }
 
 /* ---------- API spend (project.js): one series, validated hue per theme (--chart-1) */
@@ -712,4 +725,9 @@ body.lu-open .lu-fab { opacity: 0; pointer-events: none; transform: scale(.9); }
   .sp-stats { grid-template-columns: 1fr 1fr; }
   .sp-stats div:last-child { grid-column: span 2; }
   .sp-stats b { font-size: 20px; }
+}
+@media (max-width: 380px) {
+  .views { margin-left: 2px; }
+  .view-btn { padding: 0 6px; font-size: 12.5px; }
+  .acct { margin-left: 0; }
 }
