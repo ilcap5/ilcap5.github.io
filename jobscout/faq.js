@@ -1,4 +1,4 @@
-import { FAQ, FAQ_UPDATED } from "./faq-data.js?v=202610151626";
+import { FAQ, FAQ_UPDATED } from "./faq-data.js?v=202610261710";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
