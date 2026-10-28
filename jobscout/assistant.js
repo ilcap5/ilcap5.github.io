@@ -5,9 +5,9 @@
 //   company category -> Stato "company_overrides_v1", search / CV preference or bug -> Stato "assistant_notes_v1".
 // A function the app does not have is saved by itself in the "Proposte degli utenti" tab: the next SAL lists it and
 // the owner decides (column "Decisione"). Lu also reads the saved search profile, so it can point to the right page.
-import { CONFIG } from "./config.js?v=202610281437";
-import { FAQ } from "./faq-data.js?v=202610281437";
-import { GUIDE, JOB_STARTERS, STARTERS } from "./lu-guide.js?v=202610281437";
+import { CONFIG } from "./config.js?v=202610281709";
+import { FAQ } from "./faq-data.js?v=202610281709";
+import { GUIDE, JOB_STARTERS, STARTERS } from "./lu-guide.js?v=202610281709";
 
 const TIER_LABEL = {
   multinational: "multinazionale", large_company: "grande azienda", tech_scaleup: "scale-up tech",

@@ -4,8 +4,8 @@
 //   load()              -> { jobs: [...], url }
 //   update(id, fields)  -> writes the fields of one job
 
-import { HEADERS, LEGACY_STATUS } from "./schema.js?v=202610281437";
-import { demoCosts, demoInsights, demoJobs, demoProject } from "./demo.js?v=202610281437";
+import { HEADERS, LEGACY_STATUS } from "./schema.js?v=202610281709";
+import { demoCosts, demoInsights, demoJobs, demoProject } from "./demo.js?v=202610281709";
 
 const TAB = "Candidature";
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
@@ -279,7 +279,7 @@ export class DemoStore {
         usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
       };
     }
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610281437");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610281709");
     await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
     return path.endsWith("infer") ? demoInfer() : demoBuild(body);
   }
