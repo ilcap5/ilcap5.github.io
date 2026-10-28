@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202610261710";
+import { addDays, fmtDate, today } from "./schema.js?v=202610281437";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 
@@ -17,7 +17,7 @@ const ROWS = [
   ["EY-Parthenon", "Consultant, Operations Strategy", "ey.com", 83, "Follow-up da inviare", "Y", -20, -16, "Inviare il follow-up (bozza in Gmail)", 0, "core", "48-55k", "Stima", "2-4", "Ibrido"],
   ["Monitor Deloitte", "Senior Consultant, Supply Chain Strategy", "deloitte.com", 80, "Screening recruiter", "Y", -18, -15, "Rispondere al recruiter", 1, "core", "52-60k", "Stima", "3-5", "Ibrido"],
   ["Bending Spoons", "Product Operations Specialist", "bendingspoons.com", 72, "Colloquio in corso", "Y", -25, -22, "Confermare e preparare il colloquio", 2, "affine", "70-85k", "Dichiarata", "Non indicati", "In sede"],
-  ["Casavo", "Operations Lead", "casavo.com", 75, "Rifiutata", "Y", -30, -27, "", null, "core", "50-60k", "Stima", "4+", "Ibrido"],
+  ["Casavo", "Operations Lead", "casavo.com", 75, "Scartata dall'azienda", "Y", -30, -27, "", null, "core", "50-60k", "Stima", "4+", "Ibrido"],
   ["Everli", "Supply Planning Specialist", "everli.com", 58, "Nessuna risposta", "Y", -40, -36, "", null, "core", "42-46k", "Stima", "2+", "Ibrido"],
   ["Acme Logistics", "Senior Operations Director", "", 34, "Stand-by", "N", -6, null, "", null, "fuori target", "90-110k", "Stima", "10+", "In sede"],
   ["Fiscozen", "Customer Operations Analyst", "fiscozen.it", 61, "Stand-by", "N", -6, null, "", null, "affine", "38-42k", "Stima", "1-2", "Remoto"],
