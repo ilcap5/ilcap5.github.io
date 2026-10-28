@@ -1,15 +1,15 @@
-import { accountButton, initAccount } from "./account.js?v=202610261710";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610261710";
-import { CONFIG } from "./config.js?v=202610261710";
-import { DemoStore, SheetsStore } from "./store.js?v=202610261710";
-import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610261710";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610261710";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610261710";
+import { accountButton, initAccount } from "./account.js?v=202610281437";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610281437";
+import { CONFIG } from "./config.js?v=202610281437";
+import { DemoStore, SheetsStore } from "./store.js?v=202610281437";
+import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610281437";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610281437";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610281437";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610261710";
+} from "./schema.js?v=202610281437";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -115,7 +115,9 @@ async function reload(first = false) {
       state.store.getState(PAUSE_KEY).catch(() => state.paused),
     ]);
     state.paused = paused || "";
-    state.jobs = jobs;
+    // A No on an offer the company has closed is final: hidden here, removed from the sheet by the agent's next run
+    // (learning.cleanup_rejected, also 30 days after the No).
+    state.jobs = jobs.filter((j) => !(/^n/i.test(j.decision) && j.status === S.EXPIRED));
     state.market = parseInsights(market);
     state.project = parseProject(projectRows);
     if (!state.project && state.view === "project") state.view = "jobs";
@@ -241,7 +243,7 @@ async function togglePower() {
   renderHero();
   try {
     await state.store.setState(PAUSE_KEY, state.paused);
-    toast(state.paused ? "Agente in pausa: niente ricerche, CV e tracciamento finché non lo riaccendi." : "Agente acceso: riparte dal prossimo giro.");
+    toast(state.paused ? "Agente in pausa: niente ricerche e CV finché non lo riaccendi. Le risposte delle aziende alle candidature inviate continuo a leggerle." : "Agente acceso: riparte dal prossimo giro.");
   } catch (e) {
     state.paused = before;
     renderTop();
@@ -949,5 +951,7 @@ function toast(msg, kind = "ok") {
 
 initAssistant({
   getStore: () => state.store, getJobs: () => state.jobs, getSelected: () => state.selected, icon, esc, toast,
+  getAgent: () => ({ in_pausa: Boolean(state.paused), prossima_ricerca: state.paused ? "" : nextRun() || "" }),
+  getSheetUrl: () => state.url || "",
 });
 boot();

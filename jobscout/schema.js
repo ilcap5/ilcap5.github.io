@@ -18,10 +18,12 @@ export const S = {
   NEW: "Da valutare", STANDBY: "Stand-by", CV_READY: "CV pronto", CV_CHECK: "CV da rivedere",
   APPLIED: "Candidata", FOLLOWUP_DUE: "Follow-up da inviare", FOLLOWUP_SENT: "Follow-up inviato",
   SCREENING: "Screening recruiter", ASSESSMENT: "Assessment / test", INTERVIEW: "Colloquio in corso",
-  FINAL_LOOP: "Loop finale", OFFER: "Offerta", REJECTED: "Rifiutata", NO_ANSWER: "Nessuna risposta",
+  FINAL_LOOP: "Loop finale", OFFER: "Offerta", REJECTED: "Scartata dall'azienda", NO_ANSWER: "Nessuna risposta",
   WITHDRAWN: "Ritirata da me", EXPIRED: "Scaduta",
 };
 export const STATUSES = Object.values(S);
+// Old names still in rows the agent has not rewritten yet (same as LEGACY_STATUS in jobagent/sheets.py).
+export const LEGACY_STATUS = { "Rifiutata": S.REJECTED };
 export const APPLIED_STATUSES = new Set([S.APPLIED, S.FOLLOWUP_DUE, S.FOLLOWUP_SENT, S.SCREENING, S.ASSESSMENT,
   S.INTERVIEW, S.FINAL_LOOP, S.OFFER, S.REJECTED, S.NO_ANSWER, S.WITHDRAWN]);
 export const RESPONDED = new Set([S.SCREENING, S.ASSESSMENT, S.INTERVIEW, S.FINAL_LOOP, S.OFFER, S.REJECTED]);

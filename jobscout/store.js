@@ -4,8 +4,8 @@
 //   load()              -> { jobs: [...], url }
 //   update(id, fields)  -> writes the fields of one job
 
-import { HEADERS } from "./schema.js?v=202610261710";
-import { demoCosts, demoInsights, demoJobs, demoProject } from "./demo.js?v=202610261710";
+import { HEADERS, LEGACY_STATUS } from "./schema.js?v=202610281437";
+import { demoCosts, demoInsights, demoJobs, demoProject } from "./demo.js?v=202610281437";
 
 const TAB = "Candidature";
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
@@ -29,6 +29,7 @@ function rowsToJobs(values) {
     const job = { _row: i + 2 };
     keys.forEach((k, c) => { if (k) job[k] = row[c] ?? ""; });
     for (const k of Object.values(HEADERS)) if (!(k in job)) job[k] = "";
+    job.status = LEGACY_STATUS[job.status] || job.status;
     if (job.company || job.title) jobs.push(job);
   });
   return { jobs, keys };
@@ -56,34 +57,63 @@ export class SheetsStore {
   }
 
   async _gis() {
-    if (window.google?.accounts?.oauth2) return;
-    await new Promise((resolve, reject) => {
+    if (window.google?.accounts?.oauth2) return this._initClient();
+    this._loading ||= new Promise((resolve, reject) => {
       const s = document.createElement("script");
       s.src = "https://accounts.google.com/gsi/client";
       s.onload = resolve;
-      s.onerror = () => reject(new Error("Non riesco a caricare il login Google."));
+      s.onerror = () => { this._loading = null; reject(new Error("Non riesco a caricare il login Google.")); };
       document.head.appendChild(s);
+    });
+    await this._loading;
+    this._initClient();
+  }
+
+  // One token client for the whole page, created before the click: the popup must open in the same tick as the
+  // click, otherwise the browser blocks it and the first attempt fails.
+  _initClient() {
+    if (this._client) return;
+    this._waiters = [];
+    this._client = window.google.accounts.oauth2.initTokenClient({
+      client_id: this.clientId,
+      scope: this.scope,
+      callback: (r) => {
+        if (r.error) return this._settle(new Error(r.error_description || r.error));
+        this.token = r.access_token;
+        try {
+          sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ value: r.access_token, exp: Date.now() + r.expires_in * 1000 }));
+        } catch { /* ignore */ }
+        this._settle(null, r.access_token);
+      },
+      error_callback: (e) => {
+        // Google can report "popup_closed" while the account chooser is still open (the browser hides the popup
+        // from the page): the answer may still come, so wait a little before giving up.
+        if (e?.type === "popup_closed") {
+          clearTimeout(this._closedTimer);
+          this._closedTimer = setTimeout(() => this._settle(new Error("Accesso annullato.")), 45000);
+          return;
+        }
+        if (e?.type === "popup_failed_to_open") return this._settle(new Error("Il browser ha bloccato la finestra di accesso di Google: consenti i popup per questo sito e riprova."));
+        this._settle(new Error(e?.message || "Accesso annullato."));
+      },
     });
   }
 
-  async signIn(prompt = "") {
-    await this._gis();
-    this.token = await new Promise((resolve, reject) => {
-      const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: this.clientId,
-        scope: this.scope,
-        prompt,
-        callback: (r) => {
-          if (r.error) return reject(new Error(r.error_description || r.error));
-          try {
-            sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ value: r.access_token, exp: Date.now() + r.expires_in * 1000 }));
-          } catch { /* ignore */ }
-          resolve(r.access_token);
-        },
-        error_callback: (e) => reject(new Error(e?.message || "Accesso annullato.")),
-      });
-      client.requestAccessToken();
+  _settle(err, token) {
+    clearTimeout(this._closedTimer);
+    const waiters = this._waiters || [];
+    this._waiters = [];
+    for (const w of waiters) err ? w.reject(err) : w.resolve(token);
+  }
+
+  // Not async on purpose: when the client is ready the popup opens before any await.
+  signIn(prompt = "") {
+    const ask = () => new Promise((resolve, reject) => {
+      this._waiters.push({ resolve, reject });
+      this._client.requestAccessToken({ prompt });
     });
+    if (this._client) return ask();
+    return this._gis().then(ask);
   }
 
   signOut() {
@@ -185,11 +215,20 @@ SheetsStore.prototype.loadCosts = async function () {
   }
 };
 
-// Rows appended at the bottom of a tab (assistant log, cost log). The tab must exist: the agent creates it.
-SheetsStore.prototype.appendRows = async function (tab, rows) {
-  await this._fetch(`/values/${encodeURIComponent(`${tab}!A:I`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+// Rows appended at the bottom of a tab (assistant log, cost log). The agent creates the tabs; with { create: headers }
+// a missing tab is created here, with its header row (e.g. the users' proposals, before the agent's next run).
+SheetsStore.prototype.appendRows = async function (tab, rows, { create = null } = {}) {
+  const append = () => this._fetch(`/values/${encodeURIComponent(`${tab}!A:I`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
     method: "POST", body: JSON.stringify({ values: rows }),
   });
+  try {
+    await append();
+  } catch (e) {
+    if (!create || !/parse range|Errore 400/i.test(e.message)) throw e;
+    await this._fetch(":batchUpdate", { method: "POST", body: JSON.stringify({ requests: [{ addSheet: { properties: { title: tab } } }] }) });
+    await this._fetch(`/values/${encodeURIComponent(`${tab}!A1`)}?valueInputOption=RAW`, { method: "PUT", body: JSON.stringify({ values: [create] }) });
+    await append();
+  }
 };
 
 SheetsStore.prototype.api = async function (baseUrl, path, body, retry = true) {
@@ -240,7 +279,7 @@ export class DemoStore {
         usage: { model: "demo", input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 },
       };
     }
-    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610261710");
+    const { demoInfer, demoBuild } = await import("./demo-profile.js?v=202610281437");
     await new Promise((r) => setTimeout(r, path.endsWith("infer") ? 1800 : 2200));
     return path.endsWith("infer") ? demoInfer() : demoBuild(body);
   }

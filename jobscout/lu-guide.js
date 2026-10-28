@@ -4,8 +4,9 @@ export const GUIDE = `
 In alto: saluto con le offerte che aspettano un sì o un no e i CV pronti, e quando parte la prossima ricerca. Accanto,
 il pulsante "Valuta le offerte" (o "Vedi i CV pronti") porta alla scheda giusta della lista.
 Barra in alto a destra: il pulsante On/Off ("Attivo" in verde, "In pausa" in giallo con l'icona barrata) accende o mette
-in pausa l'agente; in pausa non fa ricerche, CV su misura, tracciamento delle email né il riepilogo delle 18, così non
-spende per l'AI, e riparte dal giro successivo appena lo riaccendi. Accanto, la campanella apre le notifiche (CV pronti, risposte delle aziende, follow-up da inviare, offerte
+in pausa l'agente; in pausa non fa ricerche, CV su misura, follow-up né il riepilogo delle 18, ma continua a leggere
+le risposte delle aziende alle candidature già inviate e ad aggiornarne lo stato; riparte dal giro successivo appena lo
+riaccendi. Accanto, la campanella apre le notifiche (CV pronti, risposte delle aziende, follow-up da inviare, offerte
 nuove dell'ultima ricerca; il numero rosso dice quante non sono ancora lette, "Segna tutto come letto" le azzera e
 cliccandone una si apre l'offerta); la freccia circolare aggiorna i dati; l'icona tonda con l'omino apre il menu dell'account con
 "Vedi il tuo profilo" (il profilo di ricerca salvato), "Rifai la profilazione" (CV e domande da capo), "Abbonamento"
@@ -39,6 +40,13 @@ Nelle note di un'offerta "Contraddittorio: ..." è la seconda lettura di un recr
 da 75 in su: conferma, abbassa il match spiegando perché ("match da 88 a 72") o sconsiglia; non cancella mai l'offerta,
 decidi tu. "Lettura da recruiter" nelle note del CV dice quanti requisiti chiave il CV mette in evidenza e cosa
 preparare a voce per quelli che il tuo CV non copre.
+Stati di una candidatura inviata: Candidata, Follow-up da inviare, Follow-up inviato, Screening recruiter, Assessment /
+test, Colloquio in corso, Loop finale, Offerta; chiusa: "Scartata dall'azienda" (l'azienda non va avanti con te),
+"Nessuna risposta", "Ritirata da me" (ti sei ritirato tu), "Scaduta". Le offerte a cui hai detto No e che l'azienda ha
+chiuso, o passati 30 giorni dal No, spariscono dalla lista e non tornano più.
+Pagina Profilo (menu account, "Vedi il tuo profilo"): città e distanza, "Ti trasferiresti" (No, In Italia, Anche
+all'estero), modalità, ruoli, settori, aziende, RAL. L'agente cerca solo nelle zone scelte lì: per offerte all'estero
+servono una città estera o "Anche all'estero". "Modifica le risposte" cambia il profilo senza rifare il CV.
 Il follow-up viene proposto 14 giorni dopo l'invio se l'azienda non ha risposto. Le risposte delle aziende lette
 dalla Gmail aggiornano lo stato da sole ogni mattina dei giorni feriali.
 Colori del match: verde da 70 in su, giallo 50-69, arancio 30-49, rosso sotto 30.
