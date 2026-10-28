@@ -1,15 +1,15 @@
-import { accountButton, initAccount } from "./account.js?v=202610281437";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610281437";
-import { CONFIG } from "./config.js?v=202610281437";
-import { DemoStore, SheetsStore } from "./store.js?v=202610281437";
-import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610281437";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610281437";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610281437";
+import { accountButton, initAccount } from "./account.js?v=202610281709";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610281709";
+import { CONFIG } from "./config.js?v=202610281709";
+import { DemoStore, SheetsStore } from "./store.js?v=202610281709";
+import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610281709";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610281709";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610281709";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610281437";
+} from "./schema.js?v=202610281709";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -243,7 +243,7 @@ async function togglePower() {
   renderHero();
   try {
     await state.store.setState(PAUSE_KEY, state.paused);
-    toast(state.paused ? "Agente in pausa: niente ricerche e CV finché non lo riaccendi. Le risposte delle aziende alle candidature inviate continuo a leggerle." : "Agente acceso: riparte dal prossimo giro.");
+    toast(state.paused ? "Agente in pausa: niente ricerche, CV e tracciamento finché non lo riaccendi. Alla riaccensione recupero le email delle aziende arrivate nel frattempo (fino a un mese)." : "Agente acceso: riparte dal prossimo giro.");
   } catch (e) {
     state.paused = before;
     renderTop();
