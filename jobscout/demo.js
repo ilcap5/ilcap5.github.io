@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202610281709";
+import { addDays, fmtDate, today } from "./schema.js?v=202611051906";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 
@@ -47,21 +47,50 @@ export function demoJobs() {
   });
 }
 
-// Sample "Progetto" tab (admin view): invented documents, same shape the agent writes (jobagent/project.py).
+// Sample "Progetto" tab (admin view): invented documents, same shape the agent writes (jobagent/project.py),
+// "Dati" column included.
 export function demoProject() {
   const t = today();
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const d0 = iso(t), d1 = iso(addDays(t, -1)), d3 = iso(addDays(t, -3));
-  const sal = (d, verdict, line, risk) => `# SAL del ${fmtDate(new Date(d))} - ${verdict}\n\n${line}\n\n## Attività svolte\n- Bene: ricerca del giorno completata, 18 offerte aggiunte\n- Da migliorare: 3 siti carriere non leggibili\n\n## Attività in corso\n- Contraddittorio sulle offerte con match da 75\n\n## Punti aperti e rischi\n- ${risk}\n\n## Next steps\n- Controllare le offerte con match alto prima di venerdì\n\n## Numeri\n- offerte_aggiunte_7g: 41\n- si_su_decise_pct: 18\n- spesa_mese_usd: 2.4`;
-  const plan = { fasi: [
-    { n: 0, title: "L'agente lavora per te", status: "IN CORSO", detail: "" },
-    { n: 1, title: "Quick wins", status: "FATTO", detail: "" },
-    { n: 2, title: "Prove a vuoto", status: "FATTO", detail: "" },
-    { n: 3, title: "Limiti di ruolo e di zona", status: "IN CORSO", detail: "in osservazione" },
-    { n: 4, title: "Prova con altri profili", status: "IN ATTESA", detail: "dei CV" },
-    { n: 5, title: "Questionario", status: "DA FARE", detail: "" },
-  ], in_corso: ["Prova sul campo dei CV su misura", "Contraddittorio: confronto dei Sì per esito"],
-  punti_aperti: ["La ricerca pubblica a volte restituisce meno offerte"], altro: [] };
+  const dm = (d) => `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const d0 = iso(t), d1 = iso(addDays(t, -2)), d3 = iso(addDays(t, -3));
+  const due = (n) => ({ due: iso(addDays(t, n)), due_label: dm(addDays(t, n)) });
+  const it = (text, extra = {}) => ({ text, short: text.split(". ")[0], ...extra });
+  const salData = (verdict, headline, risk) => ({ verdict, headline,
+    done: [it("Ricerca offerte: 3 giri riusciti, 18 offerte aggiunte", { ok: true }), it("Riepilogo delle 18 inviato puntuale", { ok: true }),
+      it("CV della sera: un giro non riuscito per un errore del servizio AI", { ok: false })],
+    doing: [it("Fase 3: si osserva se la ricerca senza limiti fissi regge"), it("In attesa di te: 8 offerte da valutare")],
+    risks: [it(risk, { level: "alto" }), it("Offerte aggiunte in calo: 14 in 7 giorni contro 41", { level: "medio" }),
+      it("3 siti carriere non leggibili, si correggono nella scheda Siti carriere", { level: "basso" })],
+    next: [it("Rileggere il contratto PwC", { owner: "Federico", ...due(2) }), it("Rifare il giro dei CV non riuscito", { owner: "Claude", ...due(1) }),
+      it("Contare le offerte per giorno prima di cambiare le regole", { owner: "Agente", due: "", due_label: "" })],
+    numbers: { si_su_decise_pct: 9, offerte_aggiunte_7g: 14, match_medio_aggiunte_7g: 72, da_valutare: 8, cv_pronti_da_inviare: 1,
+      spesa_mese_usd: 2.4, proiezione_fine_mese_usd: 4.9 }, proposals: [] });
+  const council = { plan: "Fase 3 oltre la scadenza, fasi 4 e 6 ferme in attesa di te; spesa sotto il budget.",
+    summary: "Giri regolari ma nessun Sì nuovo. I consulenti concordano: prezzo e lancio restano fermi finché non ci sono dati.",
+    points: [
+      { text: "Contare le offerte per giorno prima di toccare le regole", who: "Avvocato del diavolo", verdict: "Geniale", why: "Costa una lettura del foglio. Evita di annullare una scelta su un dato gonfiato.", why_short: "Costa una lettura del foglio" },
+      { text: "Tre numeri per ogni giro nel SAL", who: "Analista finanziario", verdict: "Da fare", why: "Nessun costo AI, rende misurabile il calo.", why_short: "Nessun costo AI, rende misurabile il calo." },
+      { text: "Questionario anonimo entro fine mese", who: "Marketing", verdict: "Da approfondire", why: "Unica fonte sulla domanda prima di novembre.", why_short: "Unica fonte sulla domanda prima di novembre." },
+      { text: "Leggere i siti difficili con il browser", who: "SAL", verdict: "Rischioso", why: "Senza un tetto costa circa un terzo del budget.", why_short: "Senza un tetto costa circa un terzo del budget." },
+    ],
+    decisions: [
+      { title: "Calo delle offerte", note: "", why: "Senza numeri per giro ogni lettura del calo resta un'opinione.", rec: "Non tornare indietro: prima si contano le offerte per giorno.", alt: "Lasciare tutto com'è per una settimana.", ...due(1), if_not: "Si rischia di annullare la fase 3 su un dato sbagliato." },
+      { title: "Contratto e questionario", note: "", why: "Senza contratto chiarito non esiste una strada commerciale.", rec: "Rileggere il contratto e far partire il questionario anonimo.", alt: "Solo la rilettura del contratto.", ...due(4), if_not: "Le fasi 5 e 6 restano ferme." },
+    ], later: ["Prezzo e prova gratuita", "Testi della pagina pubblica"] };
+  const row = (id, text, n, owner, status, detail = "") => ({ id, text, ...(n === null ? { due: "", due_label: "" } : due(n)), owner, status, detail });
+  const roadmap = { aggiornata: dm(t), rischi: ["LinkedIn a volte limita le richieste: la ricerca pubblica può portare meno offerte."],
+    fasi: [row("Fase 0", "L'agente lavora per te: almeno 1 colloquio e più del 15% di Sì", 8, "Federico", "In corso"),
+      row("Fase 1", "Migliorie rapide dei consulenti", -20, "Claude", "Fatto"), row("Fase 2", "Prove a vuoto", -19, "Claude", "Fatto"),
+      row("Fase 3", "Ricerca senza limiti fissi: capire se regge", -8, "Claude", "In corso", "Da leggere: offerte arrivate all'AI e quota di Sì."),
+      row("Fase 4", "Prova con i CV di due amici", 3, "Federico", "In attesa"), row("Fase 5", "Questionario a un campione", 10, "Federico", "Da fare")],
+    punti: [row("R1", "Contare le offerte per giorno prima di toccare la fase 3", 1, "Federico", "In attesa"),
+      row("R2", "Tre numeri per ogni giro nel SAL", 6, "Claude", "In attesa"),
+      row("R3", "Verifiche dei giri di due settimane fa mai chiuse", -9, "Claude", "In corso", "Siti carriere e scarti nuovi nel log."),
+      row("R4", "Soglia del contraddittorio: tenerla o cambiarla", -1, "Federico", "In attesa"),
+      row("R5", "Risposte alle candidature con i nuovi CV", 8, "Agente", "In corso"),
+      row("R6", "Pulsante On/Off dell'agente", -2, "Claude", "Fatto")],
+    altro: [row("A1", "\"Perché sì\" nella scheda di ogni offerta", null, "Claude", "Da fare")] };
   const runs = [
     { workflow: "Ricerca offerte", when: "oggi 15:21", at: d0, conclusion: "success", url: "" },
     { workflow: "Riepilogo 18:00", when: "oggi 18:02", at: d0, conclusion: "success", url: "" },
@@ -69,14 +98,18 @@ export function demoProject() {
     { workflow: "CV su misura", when: "ieri 19:16", at: d1, conclusion: "failure", url: "" },
     { workflow: "Report dei giri", when: "ieri 23:46", at: d1, conclusion: "success", url: "" },
   ];
+  const plan = { fasi: [], in_corso: [], punti_aperti: [], altro: [] };
+  const salMd = (h) => `# SAL\n\n${h}\n\n## Attività svolte\n- Bene: ricerca del giorno completata\n\n## Numeri\n- si_su_decise_pct: 9`;
+  const s0 = salData("attenzione", "Giri regolari, ma un CV non è partito e la quota di Sì resta sotto l'obiettivo.", "Quota di Sì al 9% contro l'obiettivo del 15%");
+  const s1 = salData("ok", "Tutti i giri riusciti, 18 offerte aggiunte, spesa nella media.", "Nessun colloquio ancora dalle candidature");
   return [
-    ["ID", "Tipo", "Data", "Titolo", "Sintesi", "Contenuto", "Link"],
-    ["roadmap", "roadmap", d0, "Roadmap e piano", JSON.stringify(plan), "# Roadmap\n\n## Piano\n\n**Fase 0 - L'agente lavora per te. IN CORSO**\n- Usare l'agente e misurare.\n\n**Fase 5 - Questionario. DA FARE**\n- Modulo a un campione rappresentativo.", ""],
-    [`sal:${d0}`, "sal", d0, `SAL del ${fmtDate(t)} - ok`, "Giornata regolare: ricerca e riepilogo puntuali, un CV in attesa.", sal(d0, "ok", "Giornata regolare: ricerca e riepilogo puntuali, un CV in attesa.", "Un giro CV non riuscito ieri sera: da controllare"), ""],
-    [`sal:${d1}`, "sal", d1, `SAL del ${fmtDate(addDays(t, -1))} - attenzione`, "Un giro CV non riuscito, gli altri regolari.", sal(d1, "attenzione", "Un giro CV non riuscito, gli altri regolari.", "Batch lento la sera"), ""],
-    [`consiglio:${d3}-settimana`, "consiglio", d3, `Consiglio del ${fmtDate(addDays(t, -3))} - Settimana`, "Sintesi. Nessun rischio nuovo; da decidere la soglia del contraddittorio.", `# Consiglio - Settimana\n\n## Riscontro del giudice\n\n**Sintesi.** Nessun rischio nuovo; da decidere la soglia del contraddittorio.\n\n| Tema | Rischioso | Geniale |\n|---|---|---|\n| Soglia 75 | poche offerte rilette | costo basso |\n\n**Da decidere.**\n1. Abbassare la soglia a 70?\n2. Tenere il report giornaliero fino a fine mese?`, ""],
-    ["budget", "budget", d0, "Budget API", JSON.stringify({ monthly_usd: 10, alert_at: 0.8 }), "", ""],
-    ["giri", "giri", d0, "Ultimi giri dell'agente", "", JSON.stringify(runs), ""],
+    ["ID", "Tipo", "Data", "Titolo", "Sintesi", "Contenuto", "Link", "Dati"],
+    ["roadmap", "roadmap", d0, "Roadmap e piano", JSON.stringify(plan), "# Roadmap\n\n## Piano\n\nTabelle con scadenza, owner e stato.", "", JSON.stringify(roadmap)],
+    [`sal:${d0}`, "sal", d0, `SAL del ${fmtDate(t)} - attenzione`, s0.headline, salMd(s0.headline), "", JSON.stringify(s0)],
+    [`sal:${d1}`, "sal", d1, `SAL del ${fmtDate(addDays(t, -2))} - ok`, s1.headline, salMd(s1.headline), "", JSON.stringify(s1)],
+    [`consiglio:${d3}`, "consiglio", d3, `Consiglio del ${fmtDate(addDays(t, -3))}`, council.summary, "# Consiglio\n\n## Riscontro del giudice\n\nVerbale di esempio.", "", JSON.stringify(council)],
+    ["budget", "budget", d0, "Budget API", JSON.stringify({ monthly_usd: 10, alert_at: 0.8 }), "", "", ""],
+    ["giri", "giri", d0, "Ultimi giri dell'agente", "", JSON.stringify(runs), "", ""],
   ];
 }
 
