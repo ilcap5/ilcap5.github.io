@@ -1,15 +1,15 @@
-import { accountButton, initAccount } from "./account.js?v=202610281709";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202610281709";
-import { CONFIG } from "./config.js?v=202610281709";
-import { DemoStore, SheetsStore } from "./store.js?v=202610281709";
-import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202610281709";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202610281709";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202610281709";
+import { accountButton, initAccount } from "./account.js?v=202611051906";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202611051906";
+import { CONFIG } from "./config.js?v=202611051906";
+import { DemoStore, SheetsStore } from "./store.js?v=202611051906";
+import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202611051906";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202611051906";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202611051906";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202610281709";
+} from "./schema.js?v=202611051906";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
