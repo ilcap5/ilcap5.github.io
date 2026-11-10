@@ -271,6 +271,13 @@ table.jobs { width: 100%; border-collapse: collapse; }
 .jobs th { text-align: left; font-size: 12.5px; font-weight: 550; color: var(--muted); padding: 11px 12px; border-bottom: 1px solid var(--line); white-space: nowrap;
   position: sticky; top: 58px; z-index: 2; background: color-mix(in srgb, var(--panel) 92%, transparent);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+/* Column headers sort the list: the arrow shows on the sorted column, a faint double arrow on the others. */
+.th-sort { display: inline-flex; align-items: center; gap: 5px; margin: -4px -6px; padding: 4px 6px; border: 0; border-radius: 6px; background: none;
+  font: inherit; color: inherit; cursor: pointer; transition: color 120ms ease, background-color 120ms ease; }
+.th-sort .ic { opacity: .45; flex: none; }
+.th-sort.on { color: var(--text); font-weight: 620; }
+.th-sort.on .ic { opacity: 1; color: var(--brand-2); }
+@media (hover: hover) { .th-sort:hover { color: var(--text); background: var(--hover); } .th-sort:hover .ic { opacity: 1; } }
 .jobs th:first-child, .jobs td:first-child { padding-left: 20px; }
 .jobs th:last-child, .jobs td:last-child { padding-right: 20px; }
 .jobs td { padding: 12px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; font-size: 14.5px; }
@@ -340,6 +347,21 @@ td.c-status .sub-tag { position: absolute; left: 14px; bottom: 3px; font-size: 1
 .logo { width: var(--s); height: var(--s); border-radius: 10px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; flex: none; overflow: hidden; }
 .logo img { width: 62%; height: 62%; object-fit: contain; }
 .logo-ini { background: var(--brand-soft); color: var(--brand-2); font-weight: 650; font-size: calc(var(--s) * .34); border-color: transparent; letter-spacing: -.01em; }
+/* Initials of a company without icon: eight tints, one per company (app.js > tint). Text on tint keeps 4.5:1. */
+.ini-0 { background: #DDF0E6; color: #14614A; } .ini-1 { background: #DCEBF7; color: #1B4F7A; }
+.ini-2 { background: #FBEBCF; color: #7A5200; } .ini-3 { background: #F9E1DC; color: #8E2B1C; }
+.ini-4 { background: #DDF1F1; color: #135C5E; } .ini-5 { background: #E9EDD8; color: #4A5A16; }
+.ini-6 { background: #E6E9EE; color: #3B4A5C; } .ini-7 { background: #FBE4D2; color: #86400F; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ini-0 { background: #173329; color: #8FDCB6; } :root:not([data-theme="light"]) .ini-1 { background: #15293B; color: #9CC9EE; }
+  :root:not([data-theme="light"]) .ini-2 { background: #3A2F12; color: #F2CF6B; } :root:not([data-theme="light"]) .ini-3 { background: #3D1C19; color: #F4A196; }
+  :root:not([data-theme="light"]) .ini-4 { background: #12302F; color: #8FD6D6; } :root:not([data-theme="light"]) .ini-5 { background: #2A3114; color: #C9D98A; }
+  :root:not([data-theme="light"]) .ini-6 { background: #222B36; color: #B4C2D4; } :root:not([data-theme="light"]) .ini-7 { background: #3A2413; color: #F1B98A; }
+}
+:root[data-theme="dark"] .ini-0 { background: #173329; color: #8FDCB6; } :root[data-theme="dark"] .ini-1 { background: #15293B; color: #9CC9EE; }
+:root[data-theme="dark"] .ini-2 { background: #3A2F12; color: #F2CF6B; } :root[data-theme="dark"] .ini-3 { background: #3D1C19; color: #F4A196; }
+:root[data-theme="dark"] .ini-4 { background: #12302F; color: #8FD6D6; } :root[data-theme="dark"] .ini-5 { background: #2A3114; color: #C9D98A; }
+:root[data-theme="dark"] .ini-6 { background: #222B36; color: #B4C2D4; } :root[data-theme="dark"] .ini-7 { background: #3A2413; color: #F1B98A; }
 .pill { display: inline-flex; align-items: center; height: 26px; padding: 0 11px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
 .tone-amber { background: var(--amber-bg); color: var(--amber); } .tone-grey { background: var(--grey-bg); color: var(--grey); }
 .tone-green { background: var(--green-bg); color: var(--green); } .tone-red { background: var(--red-bg); color: var(--red); }
@@ -396,6 +418,16 @@ td.c-status .sub-tag { position: absolute; left: 14px; bottom: 3px; font-size: 1
 .fact { display: flex; flex-direction: column; gap: 1px; }
 .fact span { color: var(--muted); font-size: 13px; }
 .fact b { font-weight: 550; font-size: 14.5px; }
+/* Minimum requirements: one line each, the mark says whether your CV shows it (shape and colour, never colour alone). */
+.reqs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.req { display: flex; align-items: flex-start; gap: 10px; padding: 7px 10px; margin: 0 -10px; border-radius: 8px; font-size: 14.5px; color: var(--body); line-height: 1.45; }
+.req .ic { flex: none; margin-top: 2px; }
+.req.ok .ic, .req-count.ok .ic { color: var(--dot-green, var(--green)); }
+.req.no .ic, .req-count.no .ic { color: var(--dot-red, var(--red)); }
+.req.unk .ic, .req-count.unk .ic { color: var(--dot-amber, var(--amber)); }
+.req.no { background: color-mix(in srgb, var(--red-bg) 55%, transparent); color: var(--text); }
+.req-sum { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 10px; }
+.req-count { display: inline-flex; align-items: center; gap: 5px; color: var(--body); font-weight: 550; }
 .prose { color: var(--body); font-size: 14.5px; max-width: 65ch; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { font-size: 13.5px; padding: 5px 11px; border-radius: 999px; background: var(--hover); border: 1px solid var(--line); color: var(--body); }
