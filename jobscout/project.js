@@ -3,8 +3,8 @@
 // Each document also comes already broken into pieces (column "Dati"): the view draws them as boxes, chips and tables to
 // be read at a glance (scelta del 28/10). Without "Dati" (older sheet) it falls back to the Markdown text.
 
-import { mdToHtml } from "./md.js?v=202611051906";
-import { parseDate, shortDate } from "./schema.js?v=202611051906";
+import { mdToHtml } from "./md.js?v=202611101623";
+import { parseDate, shortDate } from "./schema.js?v=202611101623";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const json = (s, fallback) => { try { return JSON.parse(s); } catch { return fallback; } };
