@@ -1,15 +1,15 @@
-import { accountButton, initAccount } from "./account.js?v=202611051906";
-import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202611051906";
-import { CONFIG } from "./config.js?v=202611051906";
-import { DemoStore, SheetsStore } from "./store.js?v=202611051906";
-import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202611051906";
-import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202611051906";
-import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202611051906";
+import { accountButton, initAccount } from "./account.js?v=202611101623";
+import { initAssistant, luMark, openAssistant, showLu } from "./assistant.js?v=202611101623";
+import { CONFIG } from "./config.js?v=202611101623";
+import { DemoStore, SheetsStore } from "./store.js?v=202611101623";
+import { INSIGHTS_KEY, marketHtml, parseInsights } from "./market.js?v=202611101623";
+import { bellButton, buildNotifications, initBell, refreshBell } from "./notify.js?v=202611101623";
+import { docHtml, drawSpend, parseProject, projectHtml, spendData, spendHtml } from "./project.js?v=202611101623";
 import {
   APPLIED_STATUSES, FINAL, FOLLOWUP_STEP, INTERVIEWING, REJECT_EFFECTS, REJECT_REASONS, RESPONDED, S, STATUSES, STATUS_TONE, TABS,
   addDays, companyDomain, daysBetween, fmtDate, initials, longDate, matchTone, nextRun, parseDate, relDate, shortDate,
   today,
-} from "./schema.js?v=202611051906";
+} from "./schema.js?v=202611101623";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -18,9 +18,17 @@ const store_get = (k) => { try { return localStorage.getItem(k); } catch { retur
 const store_set = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* ignore */ } };
 
 const state = {
-  store: null, jobs: [], url: "", loadedAt: 0, tab: "all", q: "", fit: "", sort: "found",
+  store: null, jobs: [], url: "", loadedAt: 0, tab: "all", q: "", fit: "", sort: "found", dir: "desc",
   logos: {}, paused: "", view: "jobs", ptab: "overview", project: null, seen: new Set(), doc: null, selected: null, rejecting: false, reason: "", busy: false, deepJob: null,
 };
+
+{ // the order you chose last time, kept in this browser
+  const [key, dir] = (store_get("jobscout.sort") || "").split(":");
+  if (["found", "score", "salary", "city", "company", "status", "decision", "applied", "next"].includes(key)) {
+    state.sort = key;
+    state.dir = dir === "asc" ? "asc" : "desc";
+  }
+}
 
 // ================================================================ icons (one stroke, one size)
 const PATHS = {
@@ -37,6 +45,25 @@ const PATHS = {
   sheet: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/>',
   power: '<path d="M12 3.5v8"/><path d="M7.2 6.4a7.5 7.5 0 1 0 9.6 0"/>',
   powerOff: '<path d="M12 3.5v5"/><path d="M7.2 6.4a7.5 7.5 0 1 0 9.6 0"/><path d="M4 4l16 16"/>',
+  // Pictograms below: Lucide (lucide.dev, ISC licence), drawn on the same 24px grid with one stroke.
+  listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+  plane: '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+  calendarClock: '<path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.3V14"/><circle cx="16" cy="16" r="6"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  video: '<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  clipboardCheck: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  bellRing: '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/>',
+  reply: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="m10 7-3 3 3 3"/><path d="M17 13v-1a2 2 0 0 0-2-2H7"/>',
+  hourglass: '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+  handshake: '<path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>',
+  filePen: '<path d="m18 5-2.414-2.414A2 2 0 0 0 14.172 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2"/><path d="M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><path d="M8 18h1"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  arrowUp: '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+  arrowDown: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+  upDown: '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
+  circleCheck: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  circleX: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+  circleHelp: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
   chat: '<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 9.5h8M8 12.5h5"/>',
 };
 const icon = (name, size = 18) => `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -117,7 +144,9 @@ async function reload(first = false) {
     state.paused = paused || "";
     // A No on an offer the company has closed is final: hidden here, removed from the sheet by the agent's next run
     // (learning.cleanup_rejected, also 30 days after the No).
-    state.jobs = jobs.filter((j) => !(/^n/i.test(j.decision) && j.status === S.EXPIRED));
+    // Offers under the minimum match and never decided are not shown (the agent stops adding them and removes the old
+    // ones at its next run: settings.yaml > scoring > min_score_in_sheet).
+    state.jobs = jobs.filter((j) => !(/^n/i.test(j.decision) && j.status === S.EXPIRED) && !belowMinimum(j));
     state.market = parseInsights(market);
     state.project = parseProject(projectRows);
     if (!state.project && state.view === "project") state.view = "jobs";
@@ -162,8 +191,7 @@ function shell() {
             <input id="search" type="search" placeholder="Cerca azienda o ruolo" aria-label="Cerca azienda o ruolo"></label>
           <select id="fit" aria-label="Tipo di ruolo"></select>
           <select id="sort" aria-label="Ordina">
-            <option value="found">Più recenti</option><option value="score">Match più alto</option>
-            <option value="applied">Data di invio</option><option value="next">Prossimo passo</option>
+            ${Object.entries(SORTS).map(([k, c]) => `<option value="${k}">${c.pick}</option>`).join("")}
           </select>
         </div>
       </div>
@@ -413,17 +441,17 @@ function renderInsights() {
 
   // To do: grouped decisions first, then dated next steps.
   const todo = [];
-  if (c.review.length) todo.push({ tab: "review", ic: "question", tone: "amber", title: c.review.length === 1 ? "Decidi su un'offerta nuova" : `Decidi su ${c.review.length} offerte nuove`, sub: "Sì e il CV arriva in serata, no con il motivo" });
-  if (c.ready.length) todo.push({ tab: "ready", ic: "send", tone: "green", title: c.ready.length === 1 ? "Invia una candidatura" : `Invia ${c.ready.length} candidature`, sub: "il CV su misura è pronto" });
+  if (c.review.length) todo.push({ tab: "review", ic: "listChecks", tone: "amber", title: c.review.length === 1 ? "Decidi su un'offerta nuova" : `Decidi su ${c.review.length} offerte nuove`, sub: "Sì e il CV arriva in serata, no con il motivo" });
+  if (c.ready.length) todo.push({ tab: "ready", ic: "plane", tone: "green", title: c.ready.length === 1 ? "Invia una candidatura" : `Invia ${c.ready.length} candidature`, sub: "il CV su misura è pronto" });
   J.filter((j) => j.next_step && !FINAL.has(j.status) && ![S.NEW, S.CV_READY, S.CV_CHECK, S.STANDBY].includes(j.status))
     .map((j) => ({ j, d: parseDate(j.next_step_date) }))
     .filter(({ d }) => d && daysBetween(t, d) <= 3)
     .sort((a, b) => a.d - b.d)
     .slice(0, 5)
-    .forEach(({ j, d }) => todo.push({ id: j.id, job: j, title: j.next_step, sub: `${j.company}, ${relDate(j.next_step_date)}`, late: d < t }));
+    .forEach(({ j, d }) => todo.push({ id: j.id, ...stepSign(j), title: j.next_step, sub: `${j.company}, ${relDate(j.next_step_date)}`, late: d < t }));
   const todoHtml = todo.length ? todo.map((x) => `
     <button class="todo" data-action="${x.id ? "open" : "tab"}" ${x.id ? `data-id="${esc(x.id)}"` : `data-tab="${x.tab}"`}>
-      ${x.job ? logo(x.job, 36) : `<span class="todo-ic tone-${x.tone}">${icon(x.ic, 18)}</span>`}
+      <span class="todo-ic tone-${x.late ? "red" : x.tone}">${icon(x.ic, 19)}</span>
       <span class="todo-txt"><b>${esc(x.title)}</b><span class="${x.late ? "late" : "muted"}">${esc(x.sub)}</span></span>
       <span class="chev">${icon("chevron", 16)}</span></button>`).join("")
     : `<div class="empty-sm">${icon("check", 18)}<span>Niente in scadenza nei prossimi giorni.</span></div>`;
@@ -468,20 +496,74 @@ function placeTabIndicator() {
   if (!ind.classList.contains("ready")) requestAnimationFrame(() => ind.classList.add("ready"));
 }
 
+// Every column of the table sorts the list. `pick` is the label in the menu (the only control on a phone, where some
+// columns are hidden), `first` the direction of the first click, `text` marks alphabetical columns. Rows without a
+// value always go to the bottom, whatever the direction.
+const day = (v) => parseDate(v)?.getTime() ?? null;
+const text = (v) => String(v || "").trim().toLowerCase() || null;
+const SORTS = {
+  found: { pick: "Più recenti", first: "desc", get: (j) => day(j.found_date) },
+  score: { pick: "Match", first: "desc", get: (j) => (j.score !== "" && Number.isFinite(Number(j.score)) ? Number(j.score) : null) },
+  salary: { pick: "RAL", first: "desc", get: (j) => salaryTop(j.salary) },
+  city: { pick: "Città", first: "asc", text: true, get: (j) => text(j.city) },
+  company: { pick: "Azienda", first: "asc", text: true, get: (j) => text(j.company) },
+  status: { pick: "Stato", first: "asc", get: (j) => { const i = STATUSES.indexOf(j.status); return i < 0 ? null : i; } },
+  decision: { pick: "Ti interessa?", first: "asc", get: (j) => (/^y/i.test(j.decision) ? 0 : /^n/i.test(j.decision) ? 2 : j.status === S.NEW ? 1 : null) },
+  applied: { pick: "Data di invio", first: "desc", get: (j) => day(j.applied_date) },
+  next: { pick: "Prossimo passo", first: "asc", get: (j) => day(j.next_step_date) },
+};
+const SORT_KEY = "jobscout.sort";
+
+// "42-50k" -> 50, "45k" -> 45: the top of the range, stated or estimated, in thousands.
+function salaryTop(value) {
+  const nums = String(value || "").replace(",", ".").match(/\d+(?:\.\d+)?/g);
+  return nums ? Math.max(...nums.map(Number)) : null;
+}
+
+function setSort(key, dir) {
+  if (!SORTS[key]) return;
+  state.dir = dir || (state.sort === key ? (state.dir === "asc" ? "desc" : "asc") : SORTS[key].first);
+  state.sort = key;
+  store_set(SORT_KEY, `${key}:${state.dir}`);
+  if ($("#sort")) $("#sort").value = key;
+  renderTable();
+}
+
+function belowMinimum(j) {
+  const n = Number(j.score);
+  return j.status === S.NEW && !j.decision && j.score !== "" && Number.isFinite(n) && n < (CONFIG.minMatch ?? 60);
+}
+
 function visibleJobs() {
   const tab = TABS.find((t) => t.key === state.tab) || TABS[0];
   const q = state.q.trim().toLowerCase();
-  const by = {
-    found: (j) => parseDate(j.found_date)?.getTime() || 0,
-    score: (j) => Number(j.score) || 0,
-    applied: (j) => parseDate(j.applied_date)?.getTime() || 0,
-    next: (j) => -(parseDate(j.next_step_date)?.getTime() || 9e15),
-  }[state.sort];
+  const col = SORTS[state.sort] || SORTS.found;
+  const sign = state.dir === "asc" ? 1 : -1;
+  const cmp = (a, b) => {
+    const x = col.get(a), y = col.get(b);
+    if (x === null || y === null) return (x === null) - (y === null);
+    return sign * (col.text ? x.localeCompare(y, "it") : x - y);
+  };
   return state.jobs
     .filter(tab.test)
     .filter((j) => !state.fit || j.role_fit === state.fit)
     .filter((j) => !q || `${j.company} ${j.title} ${j.city}`.toLowerCase().includes(q))
-    .sort((a, b) => by(b) - by(a) || (Number(b.score) || 0) - (Number(a.score) || 0));
+    .sort((a, b) => cmp(a, b) || (Number(b.score) || 0) - (Number(a.score) || 0));
+}
+
+// Pictogram of a dated next step in "Da fare": what kind of thing you have to do, not which company it is about
+// (the company is in the line below).
+function stepSign(j) {
+  const t = `${j.next_step} ${j.status}`.toLowerCase();
+  if (j.status === S.OFFER || /offerta|proposta/.test(j.next_step.toLowerCase())) return { ic: "handshake", tone: "green" };
+  if (/follow-?up|sollecit/.test(t)) return { ic: "bellRing", tone: "amber" };
+  if (/assessment|test|prova|business case|caso/.test(t)) return { ic: "clipboardCheck", tone: "amber" };
+  if (/rispond|recruiter|email|mail/.test(t)) return { ic: "reply", tone: "amber" };
+  if (/chiamat|telefon|call|screening/.test(t)) return { ic: "phone", tone: "green" };
+  if (/colloquio|intervista|loop|interview/.test(t)) return { ic: "video", tone: "green" };
+  if (/cv|curriculum/.test(t)) return { ic: "filePen", tone: "amber" };
+  if (/attend|aspett/.test(t)) return { ic: "hourglass", tone: "grey" };
+  return { ic: "calendarClock", tone: "grey" };
 }
 
 // Company logo: the icon comes from our API (it fetches it from the company website, the page never calls a logo
@@ -490,11 +572,19 @@ function logo(job, size = 40) {
   const dom = companyDomain(job);
   const url = dom && state.logos[dom]?.u;
   if (url) return `<span class="logo" style="--s:${size}px" aria-hidden="true"><img src="${esc(url)}" alt=""></span>`;
-  return `<span class="logo logo-ini" style="--s:${size}px" aria-hidden="true"${dom ? ` data-dom="${esc(dom)}"` : ""}>${esc(initials(job.company))}</span>`;
+  return `<span class="logo logo-ini ini-${tint(job.company)}" style="--s:${size}px" aria-hidden="true"${dom ? ` data-dom="${esc(dom)}"` : ""}>${esc(initials(job.company))}</span>`;
+}
+
+// A company without an icon still gets its own tile: the initials on one of eight tints, always the same for the
+// same company, so the list reads as a row of marks and not as a column of identical grey squares.
+function tint(name) {
+  let h = 0;
+  for (const c of String(name || "").toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h % 8;
 }
 
 // ================================================================ logos
-const LOGO_KEY = "jobscout.logos.v1";
+const LOGO_KEY = "jobscout.logos.v2";
 const LOGO_DAYS = 14;   // a found icon is asked again after two weeks
 const NOLOGO_DAYS = 3;  // a company without icon is asked again after three days
 
@@ -510,17 +600,34 @@ function writeLogos() {
   try { localStorage.setItem(LOGO_KEY, JSON.stringify(state.logos)); } catch { /* full or blocked: they stay in memory */ }
 }
 
+// Icons are asked a few companies at a time: one call of the API can check only so many websites (it returns the
+// rest in "later"), and the first ones appear while the others are still on their way.
+const LOGO_CHUNK = 12;
+let logoRun = 0;
+
 async function loadLogos() {
   if (!CONFIG.apiUrl && !(state.store instanceof DemoStore)) return;
-  const missing = [...new Set(state.jobs.map(companyDomain).filter((d) => d && !state.logos[d]))].slice(0, 80);
-  if (!missing.length) return;
-  try {
-    const { logos = {} } = await state.store.api(CONFIG.apiUrl, "/v1/logos", { domains: missing }, false);
+  const run = ++logoRun;
+  const queue = [...new Set(state.jobs.map(companyDomain).filter((d) => d && !state.logos[d]))];
+  const tries = {};
+  let calls = 0;
+  while (queue.length && run === logoRun && calls++ < 60) {
+    const part = queue.splice(0, LOGO_CHUNK);
+    let res;
+    try {
+      res = await state.store.api(CONFIG.apiUrl, "/v1/logos", { domains: part }, false);
+    } catch { return; /* initials stay: the logos are a nicety */ }
+    const { logos = {}, later = [] } = res || {};
     const t = Date.now();
-    for (const d of missing) state.logos[d] = { u: typeof logos[d] === "string" && logos[d].startsWith("data:image/") ? logos[d] : "", t };
+    for (const d of part) {
+      tries[d] = (tries[d] || 0) + 1;
+      if (later.includes(d) && tries[d] < 3) { queue.push(d); continue; }
+      if (later.includes(d)) continue; // not checked: asked again at the next load
+      state.logos[d] = { u: typeof logos[d] === "string" && logos[d].startsWith("data:image/") ? logos[d] : "", t };
+    }
     writeLogos();
     paintLogos();
-  } catch { /* initials stay: the logos are a nicety */ }
+  }
 }
 
 // Swap the initials already on screen for the icons just arrived, without redrawing (keeps focus and typing).
@@ -531,7 +638,7 @@ function paintLogos() {
     const img = document.createElement("img");
     img.src = url;
     img.alt = "";
-    el.classList.remove("logo-ini");
+    el.className = "logo";
     el.removeAttribute("data-dom");
     el.replaceChildren(img);
   });
@@ -629,9 +736,14 @@ function renderTable() {
       <td class="c-date hide-sm">${esc(shortDate(j.applied_date)) || `<span class="muted">-</span>`}</td>
     </tr>`;
   }).join("");
+  const th = (key, label, cls = "") => {
+    const on = state.sort === key;
+    const dir = on ? (state.dir === "asc" ? "ascending" : "descending") : "none";
+    return `<th class="${cls}" aria-sort="${dir}"><button class="th-sort${on ? " on" : ""}" data-action="sort" data-sort="${key}" title="Ordina per ${esc(label.toLowerCase())}">${label}${icon(on ? (state.dir === "asc" ? "arrowUp" : "arrowDown") : "upDown", 13)}</button></th>`;
+  };
   $("#table").innerHTML = `<table class="jobs">
-    <thead><tr><th>Offerta</th><th class="hide-sm">Ti interessa?</th><th class="hide-sm">Stato</th><th>Match</th><th class="hide-md">Città</th><th class="hide-md">RAL</th>
-      <th class="hide-sm">Trovata</th><th class="hide-sm">Inviata</th></tr></thead>
+    <thead><tr>${th("company", "Offerta")}${th("decision", "Ti interessa?", "hide-sm")}${th("status", "Stato", "hide-sm")}${th("score", "Match")}${th("city", "Città", "hide-md")}${th("salary", "RAL", "hide-md")}
+      ${th("found", "Trovata", "hide-sm")}${th("applied", "Inviata", "hide-sm")}</tr></thead>
     <tbody>${rows}</tbody></table>`;
   const time = new Date(state.loadedAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
   $("#foot").textContent = `${jobs.length} di ${state.jobs.length} offerte. Aggiornato alle ${time}.`;
@@ -699,25 +811,27 @@ function renderDrawer() {
         <ul class="detail">${detail.map((d) => `<li>${esc(d)}</li>`).join("") || `<li class="muted">Dettaglio non disponibile</li>`}</ul></div></div>
     </section>
 
+    ${requirementList(j)}
+
     <section class="dr-sec"><h3>L'offerta in breve</h3>
       <div class="facts">
-        ${fact("Anni richiesti", esc(j.years_required))}
         ${fact("RAL", j.salary ? `${esc(j.salary)}${j.salary_type === "Stima" ? ` <span class="muted">stimata</span>` : ""}` : "")}
+        ${fact("Anni richiesti", esc(j.years_required))}
+        ${fact("Sede", esc([j.city, j.work_mode].filter(Boolean).join(", ")))}
         ${fact("Area", esc(j.category))}
-        ${fact("Modalità", esc(j.work_mode))}
         ${fact("Pubblicata il", esc(j.posted_date))}
         ${fact("Trovata il", esc(j.found_date))}
         ${fact("Fonte", esc(j.source))}
         ${fact("Portale", esc(j.portal))}
       </div>
       ${j.salary_note ? `<p class="small muted">${esc(j.salary_note)}</p>` : ""}
-      ${j.min_qualifications ? `<h4>Requisiti minimi</h4><p class="prose">${esc(j.min_qualifications)}</p>` : ""}
-      ${skills.length ? `<h4>Competenze chiave</h4><div class="chips">${skills.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div>` : ""}
       <div class="dr-links">
         ${j.job_url ? `<a class="link" href="${esc(j.job_url)}" target="_blank" rel="noopener">Leggi l'annuncio ${icon("external", 15)}</a>` : ""}
         ${j.cv_link ? `<a class="link" href="${esc(j.cv_link)}" target="_blank" rel="noopener">Apri il CV ${icon("external", 15)}</a>` : ""}
       </div>
     </section>
+
+    ${skills.length ? `<section class="dr-sec"><h3>Competenze chiave</h3><div class="chips">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join("")}</div></section>` : ""}
 
     <section class="dr-sec"><h3>Gestione</h3>
       ${j.id ? `
@@ -741,6 +855,39 @@ function renderDrawer() {
   } else {
     $("#drawer").scrollTop = scrollTop;
   }
+}
+
+// Minimum requirements as a checklist. The agent writes one per line with a mark first (jobagent/scoring.py >
+// requirement_lines): "✓" your CV shows it, "✗" it does not, "?" not clear from the CV. Rows analysed before this
+// format hold one plain sentence: it is split into points, all "to check", because nobody compared them one by one.
+const REQ_STATES = {
+  ok: { ic: "circleCheck", label: "Ce l'hai" },
+  no: { ic: "circleX", label: "Ti manca" },
+  unk: { ic: "circleHelp", label: "Da verificare" },
+};
+
+function parseRequirements(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return { items: [], marked: false };
+  const lines = value.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  const marked = lines.every((l) => /^[✓✗?]\s/.test(l));
+  if (marked) return { marked, items: lines.map((l) => ({ state: { "✓": "ok", "✗": "no" }[l[0]] || "unk", text: l.slice(1).trim() })) };
+  const parts = (lines.length > 1 ? lines : value.split(/;\s+|\.\s+(?=\p{Lu})/u)).map((p) => p.trim().replace(/[.;]$/, "")).filter(Boolean);
+  return { marked, items: parts.map((p) => ({ state: "unk", text: p.charAt(0).toUpperCase() + p.slice(1) })) };
+}
+
+function requirementList(j) {
+  const { items, marked } = parseRequirements(j.min_qualifications);
+  if (!items.length) return "";
+  const n = (state_) => items.filter((i) => i.state === state_).length;
+  const summary = marked
+    ? [[n("ok"), "ok", "ce l'hai"], [n("no"), "no", "ti manca"], [n("unk"), "unk", "da verificare"]].filter(([c]) => c)
+      .map(([c, st, label]) => `<span class="req-count ${st}">${icon(REQ_STATES[st].ic, 15)}${c} ${label}</span>`).join("")
+    : `<span class="muted">Confronto punto per punto disponibile dalle prossime offerte.</span>`;
+  return `<section class="dr-sec"><h3>Requisiti minimi</h3>
+    <p class="req-sum small">${summary}</p>
+    <ul class="reqs">${items.map((i) => `<li class="req ${i.state}">${icon(REQ_STATES[i.state].ic, 18)}<span><span class="sr-only">${REQ_STATES[i.state].label}: </span>${esc(i.text)}</span></li>`).join("")}</ul>
+  </section>`;
 }
 
 // The reasons for a no: same for a first no and for a yes that becomes a no.
@@ -844,6 +991,7 @@ document.addEventListener("click", async (e) => {
   if (a === "logout") { state.store.signOut(); return showLogin(state.store); }
   if (a === "reload") { state.costs = null; return reload(); }
   if (a === "assistant") return openAssistant(id || null);
+  if (a === "sort") return setSort(el.dataset.sort);
   if (a === "clear-filters") { state.q = ""; state.fit = ""; renderFilters(); renderTable(); return; }
   if (a === "tab") {
     state.tab = el.dataset.tab;
@@ -912,7 +1060,7 @@ document.addEventListener("change", (e) => {
     const job = state.jobs.find((j) => j.id === el.dataset.id);
     if (job && el.value !== job.status) save(job.id, statusFields(job, el.value), `Stato aggiornato: ${el.value}.`);
   } else if (el.id === "fit") { state.fit = el.value; renderTable(); }
-  else if (el.id === "sort") { state.sort = el.value; renderTable(); }
+  else if (el.id === "sort") setSort(el.value, SORTS[el.value]?.first);
 });
 
 document.addEventListener("input", (e) => {

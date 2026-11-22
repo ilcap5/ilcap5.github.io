@@ -7,5 +7,8 @@ export const CONFIG = {
   // Profile API (Cloudflare Worker, job_finder_bot/worker). Empty until it is deployed.
   apiUrl: "https://jobscout-api.federico-scordo5.workers.dev",
   followupDays: 14,
+  // Offers below this match that you never decided on are not shown (same value as the agent's
+  // settings.yaml > scoring > min_score_in_sheet).
+  minMatch: 60,
   userName: "Federico",
 };

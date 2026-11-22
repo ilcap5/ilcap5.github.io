@@ -20,10 +20,15 @@ e arrivano anche nella campanella.
 Nella profilazione la distanza massima dal centro della città si sceglie con una barra scorrevole, da 5 a 100 km.
 Riquadri numerici (cliccabili): Da valutare, CV pronti, Candidature, Risposte (quota di candidature con risposta),
 Colloqui. Cliccandoli si apre la scheda corrispondente della lista.
-Lista "Offerte e candidature": ricerca per azienda o ruolo, filtro per tipo di ruolo, ordinamento (Più recenti, Match
-più alto, Data di invio, Prossimo passo). Schede: Tutte, Da valutare, CV pronti, Inviate, Colloqui, Offerte, Chiuse,
+Lista "Offerte e candidature": ricerca per azienda o ruolo, filtro per tipo di ruolo, ordinamento cliccando
+l'intestazione di ogni colonna (Offerta, Ti interessa?, Stato, Match, Città, RAL, Trovata, Inviata; un secondo clic
+inverte l'ordine) oppure dal menu Ordina (anche Prossimo passo). Le offerte con match sotto 60 mai decise non si
+vedono e l'agente non le aggiunge più. Schede: Tutte, Da valutare, CV pronti, Inviate, Colloqui, Offerte, Chiuse,
 Scartate. Ogni riga mostra il logo dell'azienda (le iniziali se non c'è), ruolo, match colorato e stato; lo stato si cambia anche dal menu nella riga.
 Cliccando una riga si apre il dettaglio dell'offerta a destra:
+- sezione "Requisiti minimi": un requisito per riga con un segno, spunta verde = il CV lo dimostra, croce rossa =
+  manca, punto interrogativo giallo = da verificare (non chiaro dal CV); le offerte analizzate prima del 10/11 hanno
+  tutti i punti "da verificare";
 - riquadro "Ti interessa?" in cima al dettaglio, con due pulsanti Sì e No (gli stessi nella colonna "Ti interessa?"
   della lista): la scelta fatta è piena, verde il Sì e rossa il No; cliccando l'altra si cambia idea. Sì: il CV su
   misura arriva la sera stessa tra le 19 e le 23, con un'email. No: si sceglie un motivo (ogni motivo spiega sotto cosa

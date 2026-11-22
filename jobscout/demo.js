@@ -1,5 +1,5 @@
 // Sample offers to try the dashboard without logging in. Invented data, shown with a "Dati di esempio" badge.
-import { addDays, fmtDate, today } from "./schema.js?v=202611051906";
+import { addDays, fmtDate, today } from "./schema.js?v=202611101623";
 
 const d = (n) => (n === null ? "" : fmtDate(addDays(today(), n)));
 
@@ -35,7 +35,12 @@ export function demoJobs() {
       city: "Milano", country: "IT", priority: score >= 80 ? "Alta" : score >= 60 ? "Media" : "Bassa",
       category: role_fit === "esplorativo" ? "Sales" : "Operations",
       score_detail: `Competenze ${Math.round(score / 12)}/8 · Requisiti formali ok · Esperienza 2.6 vs ${parseInt(years) || 3} anni`,
-      min_qualifications: "Laurea in ingegneria o economia; 2-4 anni in consulenza o operations; inglese fluente; Excel e SQL.",
+      // the last rows keep the old plain sentence, to show how offers analysed before the checklist look
+      min_qualifications: i < 12
+        ? [...(/\d/.test(years) ? ["✓ Esperienza: " + years + " anni (ne hai 2.6)"] : []), "✓ Laurea in ingegneria o economia", "✓ Inglese fluente",
+          (score >= 80 ? "✓" : "?") + " Gestione di progetti con più funzioni aziendali", (score >= 75 ? "✓" : "✗") + " SQL per analisi dei dati",
+          (score >= 85 ? "?" : "✗") + " Esperienza in un'azienda tech o in una scale-up"].join("\n")
+        : "Laurea in ingegneria o economia; 2-4 anni in consulenza o operations; inglese fluente; Excel e SQL.",
       key_skills: "process improvement, stakeholder management, SQL, project management, data analysis",
       salary_note: salary_type === "Stima" ? "Stima, affidabilità media: ruoli analoghi a Milano" : "",
       job_url: "https://www.linkedin.com/jobs/", apply_url: "https://www.linkedin.com/jobs/",
